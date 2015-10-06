@@ -1,16 +1,18 @@
 package pl.jaca.server.cluster.core
 
 
-import akka.actor.Address
+import akka.actor.{ActorSystem, Address}
+import akka.testkit.{TestKit, TestActorRef}
 import org.scalatest.{Matchers, WordSpecLike}
+import pl.jaca.server.cluster.distribution.Register
 
 /**
  * @author Jaca777
  *         Created 2015-09-06 at 13
  */
-class RegistrationSpec extends WordSpecLike with Matchers with ClusterTools {
+class RegistrationSpec extends TestKit(ActorSystem("Testsystem")) with WordSpecLike with Matchers with ClusterTools {
 
-  class DummyRegister extends pl.jaca.server.cluster.distribution.Register
+  class DummyRegister extends DummyActor with pl.jaca.server.cluster.distribution.Register
 
   "Registration" must {
 
@@ -23,12 +25,12 @@ class RegistrationSpec extends WordSpecLike with Matchers with ClusterTools {
     }
 
     "register and unregister new members" in {
-      val registration = new DummyRegister
+      val registration = TestActorRef[DummyRegister].underlyingActor.asInstanceOf[Register]
       registration.register(createClusterMember(new Address("a", "a")))
-      val member = registration.register(createClusterMember(new Address("a", "b")))
-      registration.registeredMembers.count(_.clusterMember.address.system == "b") should be(1)
+      val member = registration.register(createClusterMember(new Address("a", "b"))).get
+      registration.registeredMembers.count(_.clusterMember.address.system == "b") should be (1)
       registration.unregister(member)
-      registration.registeredMembers.count(_.clusterMember.address.system == "b") should be(0)
+      registration.registeredMembers.count(_.clusterMember.address.system == "b") should be (0)
       registration.registeredMembers.size should be(1)
     }
   }

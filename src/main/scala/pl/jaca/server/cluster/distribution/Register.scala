@@ -1,8 +1,10 @@
 package pl.jaca.server.cluster.distribution
 
+import akka.actor.{Actor, ActorLogging}
 import akka.cluster.Member
 
 import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success, Try}
 
 /**
  * @author Jaca777
@@ -11,15 +13,15 @@ import scala.concurrent.{Future, Promise}
 /**
  * Register containing registered cluster members.
  */
-trait Register {
-  registration =>
+trait Register extends ActorLogging {
+  registration: Actor =>
 
   private var memberPromise = Promise[RegisteredMember]
 
   implicit class MemberRegistration(member: Member) {
-    def register(): RegisteredMember = registration.register(member)
+    def register(): Try[RegisteredMember] = registration.register(member)
 
-    def unregister(): Option[RegisteredMember] = registration.unregister(member)
+    def unregister(): Try[RegisteredMember] = registration.unregister(member)
   }
 
   private var loadFactory: (Member => Load) = (_ => new AbsoluteLoad(0))
@@ -29,26 +31,39 @@ trait Register {
     this.loadFactory = factory
   }
 
-  def register(member: Member): RegisteredMember = {
-    val registeredMember = new RegisteredMember(member, loadFactory(member))
-    registeredMembers += registeredMember
-    if (!memberPromise.isCompleted) memberPromise.success(registeredMember)
-    registeredMember
+  def register(member: Member): Try[RegisteredMember] = {
+    registeredMembers.find(_.clusterMember == member) match {
+      case Some(registeredMember) => Failure(new RegisterException(s"Unable to register a member. The given member is already registered: ${member.address}"))
+      case None =>
+        val registeredMember = new RegisteredMember(member, loadFactory(member))
+        registeredMembers += registeredMember
+        if (!memberPromise.isCompleted) memberPromise.success(registeredMember)
+        log.debug(s"Member successfully registered. Address: ${member.address}")
+        Success(registeredMember)
+    }
   }
 
-  def unregister(member: Member): Option[RegisteredMember] = {
+  def unregister(member: Member): Try[RegisteredMember] = {
     registeredMembers.find(_.clusterMember == member) match {
       case Some(toUnregister) =>
         registeredMembers = registeredMembers.filterNot(_.clusterMember == member)
         if (memberPromise.future.value.get.get == toUnregister) memberPromise = Promise[RegisteredMember]
-        Some(toUnregister)
-      case None => None
+        log.debug(s"Member successfully unregistered. Address: ${member.address}")
+        Success(toUnregister)
+      case None => Failure(new RegisterException(s"Member unregistration failed. Requested member not found: ${member.address}"))
     }
 
+  }
+
+  def isRegistered(member: Member): Boolean = registeredMembers.find(_.clusterMember == member) match {
+    case Some(_) => true
+    case None => false
   }
 
   def unregister(registeredMember: RegisteredMember): Unit = unregister(registeredMember.clusterMember)
 
   def anyMember: Future[RegisteredMember] = memberPromise.future
 }
+
+class RegisterException(val message: String) extends Exception(message)
 

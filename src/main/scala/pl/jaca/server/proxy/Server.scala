@@ -16,7 +16,7 @@ import scala.concurrent.duration._
  * @author Jaca777
  *         Created 2015-06-12 at 16
  */
-class Server(val port: Int, val resolver: PacketResolver) extends Actor{
+class Server(val port: Int, val resolver: PacketResolver) extends Actor {
   val connectionManager = new ConnectionManger(self)
   val bossGroup = new NioEventLoopGroup()
   val workersGroup = new NioEventLoopGroup()

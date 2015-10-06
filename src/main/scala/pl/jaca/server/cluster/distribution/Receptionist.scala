@@ -17,8 +17,8 @@ class Receptionist(strategy: SelectionStrategy) extends Actor with Register {
   implicit val executionContext = context.dispatcher
 
   def receive: Receive = {
-    case MemberAvailable(clusterMember) => clusterMember.register
-    case MemberUnavailable(clusterMember) => clusterMember.unregister
+    case MemberAvailable(clusterMember) => if (!isRegistered(clusterMember)) clusterMember.register
+    case MemberUnavailable(clusterMember) => if (isRegistered(clusterMember)) clusterMember.unregister
     case ListMembers => sender ! Members(registeredMembers)
     case GetAvailableWorker => availableWorker.map(AvailableWorker).pipeTo(sender)
   }

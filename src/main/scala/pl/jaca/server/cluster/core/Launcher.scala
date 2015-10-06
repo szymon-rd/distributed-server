@@ -1,7 +1,7 @@
 package pl.jaca.server.cluster.core
 
-import akka.actor.{Props, Actor, ActorSystem}
-import pl.jaca.server.cluster.{Configurable, Application}
+import akka.actor.{Actor, ActorSystem, Props}
+import pl.jaca.server.cluster.{Application, Configurable}
 import pl.jaca.server.oldcluster.FatalClusterError
 
 /**
@@ -11,14 +11,13 @@ import pl.jaca.server.oldcluster.FatalClusterError
 class Launcher extends Actor with Configurable {
   implicit val configPath = "server-cluster"
 
-  val appPath = config.get("application")
+  val appPath = config.stringAt("application").get
   val appClass: Class[Application] = Class.forName(appPath).asInstanceOf[Class[Application]]
   context.actorOf(Props(new Initializer(() => appClass.newInstance())))
 
   override def receive: Receive = {
-    case _ => throw new FatalClusterError("Launcher actor is not capable of receiving messages")
+    case _ => throw new FatalClusterError("ClusterLauncher is not capable of receiving any messages.")
   }
-
 }
 
 object Launcher {

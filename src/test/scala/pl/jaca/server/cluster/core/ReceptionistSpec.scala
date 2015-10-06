@@ -12,6 +12,7 @@ import pl.jaca.testutils.CollectionMatchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 /**
  * @author Jaca777

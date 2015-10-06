@@ -9,8 +9,18 @@ import com.typesafe.config.Config
  */
 trait Configurable extends Actor {
   val config = context.system.settings.config
-  implicit val defaultPath = ""
-  implicit class Configuration(config: Config){
-    def get(value: String)(implicit path: String) = config.getString(s"$path.$value")
+  implicit val defaultPath = "server-cluster"
+
+  implicit class Configuration(config: Config) {
+    def stringAt(value: String)(implicit path: String): Option[String] = {
+      val absolutePath = s"$path.$value"
+      if (config.hasPath(absolutePath)) Some(config.getString(absolutePath)) else None
+    }
+
+    def intAt(value: String)(implicit path: String): Option[Int] = {
+      val absolutePath = s"$path.$value"
+      if (config.hasPath(absolutePath)) Some(config.getInt(absolutePath)) else None
+    }
   }
+
 }
