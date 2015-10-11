@@ -8,8 +8,9 @@ import pl.jaca.server.chat.packets.ChatPacketResolver
 import pl.jaca.server.chat.packets.in.{ChatroomPacket, JoinLobby, JoinRoom}
 import pl.jaca.server.chat.packets.out.ChatAnnouncement
 import pl.jaca.server.cluster.distribution.{AbsoluteLoad, Distributable, Distribution}
-import pl.jaca.server.proxy.Server.Message
-import pl.jaca.server.proxy.{Connection, Server}
+import pl.jaca.server.proxy.server.Server
+import Server.PacketReceived
+import pl.jaca.server.proxy.Connection
 
 /**
  * @author Jaca777
@@ -24,7 +25,7 @@ class Chat extends Actor with Distribution with Distributable {
   val server = context.actorOf(Props(new Server(port = Chat.PORT, resolver = ChatPacketResolver)))
 
   def receive: Receive = {
-    case m: Message => handleMessage(m)
+    case m: PacketReceived => handleMessage(m)
     case CreateChatroom(name) =>
       context.distribute(new Chatroom(name)).foreach(ref => rooms += (name -> ref))
     case UserCreateChatroom(name, creator) =>
@@ -34,7 +35,7 @@ class Chat extends Actor with Distribution with Distributable {
       ref.foreach(_ ! Chatroom.Join(nicknames(creator), creator))
   }
 
-  def handleMessage(m: Message): Unit = m.packet match {
+  def handleMessage(m: PacketReceived): Unit = m.packet match {
     case packet: JoinLobby =>
       nicknames += (packet.sender -> packet.nickname)
       packet.sender.write(new ChatAnnouncement(s"Hello ${packet.nickname}!"))

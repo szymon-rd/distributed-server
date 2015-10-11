@@ -16,22 +16,21 @@ class RegistrationSpec extends TestKit(ActorSystem("Testsystem")) with WordSpecL
 
   "Registration" must {
 
+    val registration = TestActorRef[DummyRegister].underlyingActor.asInstanceOf[Register]
+
     "return valid RegisteredMember" in {
-      val registration = new DummyRegister
       val member = createClusterMember(new Address("a", "a"))
       val registered1 = registration.register(member)
       val registered2 = registration.unregister(member)
-      registered1 should be (registered2.get)
+      registered1 should be(registered2.get)
     }
 
     "register and unregister new members" in {
-      val registration = TestActorRef[DummyRegister].underlyingActor.asInstanceOf[Register]
       registration.register(createClusterMember(new Address("a", "a")))
       val member = registration.register(createClusterMember(new Address("a", "b"))).get
-      registration.registeredMembers.count(_.clusterMember.address.system == "b") should be (1)
+      registration.registeredMembers.size should be (2)
       registration.unregister(member)
-      registration.registeredMembers.count(_.clusterMember.address.system == "b") should be (0)
-      registration.registeredMembers.size should be(1)
+      registration.registeredMembers.size should be (1)
     }
   }
 }

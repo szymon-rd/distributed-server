@@ -6,7 +6,8 @@ import pl.jaca.server.chat.packets.in.Send
 import pl.jaca.server.chat.packets.out.ChatAnnouncement
 import pl.jaca.server.cluster.distribution.{AbsoluteLoad, Load, Distributable}
 import pl.jaca.server.proxy.Connection
-import pl.jaca.server.proxy.Server.Message
+import pl.jaca.server.proxy.server.Server
+import Server.PacketReceived
 import pl.jaca.server.proxy.packets.OutPacket
 
 /**
@@ -19,13 +20,13 @@ class Chatroom(val roomName: String) extends Actor with Distributable{
   var users = Map[Connection, String]()
 
   override def receive: Receive = {
-    case m: Message => handleMessage(m)
+    case m: PacketReceived => handleMessage(m)
     case Join(nick, connection) =>
       users += (connection -> nick)
       sendToAll(new ChatAnnouncement(s"Welcome $nick to $roomName!"))
   }
 
-  def handleMessage(m: Message) = m.packet match {
+  def handleMessage(m: PacketReceived) = m.packet match {
     case s: Send =>
       val nick = users(s.sender)
       sendToAll(new ChatAnnouncement(s"$nick: ${s.message}"))

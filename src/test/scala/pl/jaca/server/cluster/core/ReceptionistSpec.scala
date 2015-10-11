@@ -23,40 +23,33 @@ class ReceptionistSpec extends TestKit(ActorSystem("ReceptionistSpec")) with Imp
 
 
   "Receptionist actor" must {
+
+    val receptionist = TestActorRef(new Receptionist(RandomSelectionStrategy))
+    val member1 = createClusterMember(new Address("a", "a1"))
+    val member2 = createClusterMember(new Address("a", "a2"))
+    val member3 = createClusterMember(new Address("a", "a3"))
+    receptionist ! member1
+    receptionist ! member2
+    receptionist ! member3
+
+    val members = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members.toList
+
     "correctly manage and list registered members" in {
-      val receptionist = TestActorRef(new Receptionist(RandomSelectionStrategy))
-      val member1 = createClusterMember(new Address("a", "a1"))
-      val member2 = createClusterMember(new Address("a", "a2"))
-      receptionist ! MemberAvailable(member1)
-      receptionist ! MemberAvailable(member2)
-
-      val members = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members
       members.map(_.clusterMember) should containOnly(member1, member2)
-
       receptionist ! MemberUnavailable(member1)
-
-      val members2 = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members
-      members2.map(_.clusterMember) should containOnly(member2)
+      val newState = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members
+      newState.map(_.clusterMember) should containOnly(member2)
     }
 
     "compare load of each members when available member is requested" in {
-      val receptionist = TestActorRef(new Receptionist(PreciseSelectionStrategy))
-      receptionist ! MemberAvailable(createClusterMember(new Address("a", "a1")))
-      receptionist ! MemberAvailable(createClusterMember(new Address("a", "a2")))
-      receptionist ! MemberAvailable(createClusterMember(new Address("a", "a3")))
-
-      val members = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members.toList
-      val member1 = members(0)
-      val member2 = members(1)
-      val member3 = members(2)
-      (member1.load, member2.load, member3.load) match {
+      (members(0).load, members(2).load, members(3).load) match {
         case (load1: AbsoluteLoad, load2: AbsoluteLoad, load3: AbsoluteLoad) =>
           load1.setLoad(0)
           load2.setLoad(1)
           load3.setLoad(2)
-          Await.result(receptionist ? GetAvailableWorker, timeout.duration).asInstanceOf[AvailableWorker].worker should be (member1)
+          Await.result(receptionist ? GetAvailableWorker, timeout.duration).asInstanceOf[AvailableWorker].worker should be(member1)
           load1.increase(AbsoluteLoad(3.0f))
-          Await.result(receptionist ? GetAvailableWorker, timeout.duration).asInstanceOf[AvailableWorker].worker should be (member2)
+          Await.result(receptionist ? GetAvailableWorker, timeout.duration).asInstanceOf[AvailableWorker].worker should be(member2)
       }
     }
   }

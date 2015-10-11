@@ -9,20 +9,20 @@ import pl.jaca.server.cluster.distribution.{Distribution, Receptionist}
  * @author Jaca777
  *         Created 2015-08-16 at 20
  */
-class Node extends Actor with DistributionInitializer with Distribution {
+class ApplicationNode extends Actor with DistributionInitializer with Distribution {
 
   val receptionist = context.actorOf(Props(new Receptionist(PreciseSelectionStrategy)))
   setReceptionist(receptionist)
 
   override def receive: Receive = {
-    case Node.Launch(appFactory) =>
+    case ApplicationNode.Launch(appFactory) =>
       val app = context.actorOf(Props(appFactory()))
       app ! Application.Launch
-    case Node.GetReceptionist => sender ! Node.Receptionist(receptionist)
+    case ApplicationNode.GetReceptionist => sender ! ApplicationNode.Receptionist(receptionist)
   }
 }
 
-object Node {
+object ApplicationNode {
   
   case class Launch(appFactory: () => _ <: Application)
   

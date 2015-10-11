@@ -12,9 +12,8 @@ import pl.jaca.server.cluster.distribution.Distribution
 class GameClusterRoot extends Application with Distribution {
 
   override def receive: Receive = {
-    case Launch => {
+    case Launch =>
       context.distribute(new Chat())
-    }
   }
 
 }

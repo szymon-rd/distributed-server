@@ -1,11 +1,9 @@
-package pl.jaca.server.proxy
+package pl.jaca.server.proxy.server
 
 import java.io.IOException
 
 import akka.actor.ActorRef
-import io.netty.buffer.ByteBuf
 import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandlerAdapter}
-import io.netty.util.ReferenceCountUtil
 import pl.jaca.server.proxy.packets.InPacket
 
 /**
@@ -24,7 +22,7 @@ class PacketHandler(connectionManager: ConnectionManger, server: ActorRef) exten
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Object) {
     val packet = msg.asInstanceOf[InPacket]
-    server ! Server.Message(packet)
+    server ! Server.PacketReceived(packet)
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = cause match {

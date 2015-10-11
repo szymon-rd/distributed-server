@@ -4,6 +4,7 @@ import akka.actor.SupervisorStrategy.{Escalate, Stop}
 import akka.actor._
 import akka.cluster.Cluster
 import pl.jaca.server.cluster.Application
+import pl.jaca.server.cluster.ApplicationNode.Launch
 import pl.jaca.server.oldcluster.FatalClusterError
 
 import scala.concurrent.duration._
@@ -23,5 +24,6 @@ class Initializer(application: () => _ <: Application) extends ClusterNode {
   val cluster = Cluster(context.system)
   cluster.join(cluster.selfAddress)
 
+  appNode ! Launch(application)
 }
 

@@ -1,9 +1,7 @@
 package pl.jaca.server.chat.packets
 
-import io.netty.buffer.ByteBuf
-import pl.jaca.server.chat.packets.in.{Send, JoinRoom, JoinLobby}
-import pl.jaca.server.proxy.PacketResolver
-import pl.jaca.server.proxy.packets.InPacket
+import pl.jaca.server.chat.packets.in.{JoinLobby, JoinRoom, Send}
+import pl.jaca.server.proxy.server.PacketResolver
 
 /**
  * @author Jaca777
@@ -15,5 +13,4 @@ object ChatPacketResolver extends PacketResolver{
     case 12 => JoinRoom
     case 13 => Send
   }
-
 }

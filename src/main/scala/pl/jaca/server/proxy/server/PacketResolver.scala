@@ -1,5 +1,6 @@
-package pl.jaca.server.proxy
+package pl.jaca.server.proxy.server
 
+import pl.jaca.server.proxy.Connection
 import pl.jaca.server.proxy.packets.InPacket
 
 
