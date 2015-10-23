@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" % "akka-cluster-metrics_2.11" % "2.4.0",
   "com.typesafe.akka" % "akka-contrib_2.11" % "2.4.0",
   "com.typesafe.akka" % "akka-testkit_2.11" % "2.4.0",
-  "io.netty" % "netty-all" % "4.0.28.Final",
+  "io.netty" % "netty-all" % "4.1.0.Beta5",
   "io.reactivex" % "rxscala_2.11" % "0.25.0",
   "io.reactivex" % "rxjava" % "1.0.12",
   "io.kamon" % "sigar-loader" % "1.6.5-rev001",

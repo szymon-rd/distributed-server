@@ -2,7 +2,6 @@ package pl.jaca.server.cluster.core
 
 import akka.actor.{Actor, ActorSystem, Props}
 import pl.jaca.server.cluster.{Application, Configurable}
-import pl.jaca.server.oldcluster.FatalClusterError
 
 /**
  * @author Jaca777
@@ -16,7 +15,7 @@ class Launcher extends Actor with Configurable {
   context.actorOf(Props(new Initializer(() => appClass.newInstance())))
 
   override def receive: Receive = {
-    case _ => throw new FatalClusterError("ClusterLauncher is not capable of receiving any messages.")
+    case _ => throw new RuntimeException("ClusterLauncher is not capable of receiving any messages.")
   }
 }
 
