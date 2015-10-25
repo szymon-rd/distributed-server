@@ -3,14 +3,21 @@ package pl.jaca.server.chat
 import java.nio.charset.Charset
 
 import akka.actor.{Actor, ActorRef, Props}
+import akka.pattern._
+import akka.util.Timeout
 import pl.jaca.server.chat.Chat.{CreateChatroom, UserCreateChatroom}
+import pl.jaca.server.chat.Chatroom.ListenAt
 import pl.jaca.server.chat.packets.ChatPacketResolver
 import pl.jaca.server.chat.packets.in.{ChatroomPacket, JoinLobby, JoinRoom}
 import pl.jaca.server.chat.packets.out.ChatAnnouncement
 import pl.jaca.server.cluster.distribution.{AbsoluteLoad, Distributable, Distribution}
-import pl.jaca.server.proxy.server.Server
-import Server.PacketReceived
 import pl.jaca.server.proxy.Connection
+import pl.jaca.server.proxy.server.Server.{GetEventObservable, REventObservable}
+import pl.jaca.server.proxy.server.{PacketReceived, Server}
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 /**
  * @author Jaca777
@@ -18,24 +25,42 @@ import pl.jaca.server.proxy.Connection
  */
 class Chat extends Actor with Distribution with Distributable {
   implicit val executionContext = context.dispatcher
+  implicit val askTimeout = Timeout(2 seconds)
 
   var nicknames = Map[Connection, String]()
   var rooms = Map[String, ActorRef]()
   var userRoom = Map[Connection, ActorRef]()
   val server = context.actorOf(Props(new Server(port = Chat.PORT, resolver = ChatPacketResolver)))
+  val packetsObservable = (server ? GetEventObservable).mapTo[REventObservable]
+    .map(_.subject).map(_.filter(_.isInstanceOf[PacketReceived]).map(_.asInstanceOf[PacketReceived]).map(_.inPacket))
 
   def receive: Receive = {
-    case m: PacketReceived => handleMessage(m)
     case CreateChatroom(name) =>
-      context.distribute(new Chatroom(name)).foreach(ref => rooms += (name -> ref))
+      createChatroom(name)
     case UserCreateChatroom(name, creator) =>
-      val ref = context.distribute(new Chatroom(name))
-      ref.foreach(ref => rooms += (name -> ref))
-      ref.foreach(ref => userRoom += (creator -> ref))
-      ref.foreach(_ ! Chatroom.Join(nicknames(creator), creator))
+      val future = createChatroom(name)
+      for (ref <- future) {
+        userRoom += (creator -> ref)
+        ref ! Chatroom.Join(nicknames(creator), creator)
+      }
   }
 
-  def handleMessage(m: PacketReceived): Unit = m.packet match {
+  def createChatroom(name: String): Future[ActorRef] = {
+    val future = context.distribute(new Chatroom(name))
+    val packetsFuture = packetsObservable.map(_.filter(_.isInstanceOf[ChatroomPacket]).map(_.asInstanceOf[ChatroomPacket]))
+    for {
+      ref <- future
+      packets <- packetsFuture
+    } {
+      rooms += (name -> ref)
+      ref ! ListenAt(packets.filter(packet => userRoom(packet.sender) == ref))
+    }
+    future
+  }
+
+  val packetsSubscriber = packetsObservable.foreach(_.foreach({
+    case packet: ChatroomPacket =>
+
     case packet: JoinLobby =>
       nicknames += (packet.sender -> packet.nickname)
       packet.sender.write(new ChatAnnouncement(s"Hello ${packet.nickname}!"))
@@ -47,9 +72,8 @@ class Chat extends Actor with Distribution with Distributable {
       } else {
         self ! UserCreateChatroom(packet.channelName, packet.sender)
       }
-    case roomPacket: ChatroomPacket =>
-      userRoom(roomPacket.sender) ! m
-  }
+  }))
+
 
   def getLoad = AbsoluteLoad(1.0f)
 }

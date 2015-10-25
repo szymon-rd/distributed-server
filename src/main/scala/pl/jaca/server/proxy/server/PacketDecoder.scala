@@ -20,7 +20,7 @@ class PacketDecoder(resolver: PacketResolver, connectionManger: ConnectionManage
         val bytes = new Array[Byte](size - 4)
         in.readBytes(bytes)
         val sender =  connectionManger.getConnection(ctx.channel())
-        if(sender.isDefined) out.add(Some(resolver.resolve(id, size, bytes, sender.get)))
+        if(sender.isDefined) out.add(resolver.resolve(id, size, bytes, sender.get))
       }
     }
   }

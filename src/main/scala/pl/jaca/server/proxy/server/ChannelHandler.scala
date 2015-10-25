@@ -22,7 +22,7 @@ class ChannelHandler(connectionManager: ConnectionManager, server: ActorRef) ext
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Object) {
     val packet = msg.asInstanceOf[InPacket]
-    server ! Server.PacketReceived(packet)
+    server ! Server.EventOccurred(PacketReceived(packet))
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = cause match {

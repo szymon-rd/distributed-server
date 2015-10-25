@@ -1,11 +1,10 @@
 package pl.jaca.server.proxy.server
 
-import akka.actor.{Props, Actor}
+import akka.actor.{Actor, Props}
 import akka.util.Timeout
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import pl.jaca.server.proxy.packets.InPacket
 import pl.jaca.server.proxy.server.Server._
 import rx.lang.scala.{Observable, Subject}
 
@@ -19,8 +18,7 @@ class Server(val port: Int, val resolver: PacketResolver) extends Actor {
 
   val bossGroup = new NioEventLoopGroup
   val workersGroup = new NioEventLoopGroup
-  val selfRef = context.self
-  val connectionManager = new ConnectionManager(c => context.actorOf(Props(new ConnectionProxy(c))))
+  val connectionManager = new ConnectionManager(c => context.actorOf(Props(new ConnectionProxy(c))), self)
   val bootstrap = new ServerBootstrap()
     .group(bossGroup, workersGroup)
     .channel(classOf[NioServerSocketChannel])
@@ -30,18 +28,18 @@ class Server(val port: Int, val resolver: PacketResolver) extends Actor {
   implicit val timeout = Timeout(2.seconds)
   implicit val dispatcher = context.dispatcher
 
-  val packetSubject = Subject[InPacket]()
+  val eventSubject = Subject[Event]()
 
   def receive: Receive = {
-    case msg: PacketReceived => packetSubject.onNext(msg.packet)
+    case EventOccurred(event) => eventSubject.onNext(event)
     case Stop => shutdown()
-    case GetPacketObservable => sender ! RPacketObservable(packetSubject)
+    case GetEventObservable => sender ! REventObservable(eventSubject)
   }
 
   def shutdown() {
     bossGroup.shutdownGracefully()
     workersGroup.shutdownGracefully()
-    packetSubject.onCompleted()
+    eventSubject.onCompleted()
   }
 }
 
@@ -50,11 +48,11 @@ object Server {
   //IN
   object Stop
 
-  object GetPacketObservable
+  object GetEventObservable
 
-  case class PacketReceived(packet: InPacket)
+  case class EventOccurred(event: Event)
 
   //OUT
-  case class RPacketObservable(subject: Observable[InPacket])
+  case class REventObservable(subject: Observable[Event])
 
 }
