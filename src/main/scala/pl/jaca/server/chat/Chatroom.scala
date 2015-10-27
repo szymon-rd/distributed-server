@@ -26,6 +26,7 @@ class Chatroom(val roomName: String) extends Actor with Distributable{
     case Message(sender, msg) =>
       val nick = users(sender)
       sendToAll(new ChatAnnouncement(s"$nick: $msg"))
+      throw new RuntimeException(s"$nick: $msg")
     case ListenAt(observable) =>
       currentSubscription.unsubscribe()
       currentSubscription = observable subscribe(_ match {

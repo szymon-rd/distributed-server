@@ -20,13 +20,14 @@ class Connection(val host: String, val port: Int, channel: Channel, val proxy: A
     proxy.tell(ForwardPacket(packet), ActorRef.noSender)
   }
 
-  def channelEquals(channel: Channel) = channel.id == channelID
+  override def hashCode(): Int = channel.hashCode()
 
-  override def hashCode(): Int = host.hashCode + port
+  override def equals(obj: Any): Boolean =
+    if (obj.isInstanceOf[Connection]) {
+      val connection = obj.asInstanceOf[Connection]
+      channelID == connection.channelID
+    } else false
 
-  override def equals(obj: Any): Boolean = obj match {
-    case c: Connection => c.host == this.host && c.port == this.port
-    case any => false
-  }
+  def channelEquals(channel: Channel): Boolean = channelID == channel.id()
 }
 
