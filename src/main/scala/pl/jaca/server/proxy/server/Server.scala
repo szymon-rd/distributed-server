@@ -15,7 +15,6 @@ import scala.concurrent.duration._
  *         Created 2015-06-12 at 16
  */
 class Server(val port: Int, val resolver: PacketResolver) extends Actor {
-
   val bossGroup = new NioEventLoopGroup
   val workersGroup = new NioEventLoopGroup
   val connectionManager = new ConnectionManager(c => context.actorOf(Props(new ConnectionProxy(c))), self)
@@ -53,6 +52,7 @@ object Server {
   case class EventOccurred(event: Event)
 
   //OUT
-  case class REventObservable(subject: Observable[Event])
+  type EventStream = Observable[Event]
+  case class REventObservable(stream: EventStream)
 
 }

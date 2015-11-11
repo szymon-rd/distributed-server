@@ -11,6 +11,8 @@ abstract class Event
 
 case class PacketReceived(inPacket: InPacket) extends Event
 
-case class ConnectionActive(connection: Connection) extends Event
+class ConnectionEvent(connection: Connection)  extends Event
 
-case class ConnectionInactive(connection: Connection) extends Event
+case class ConnectionActive(connection: Connection) extends ConnectionEvent(connection)
+
+case class ConnectionInactive(connection: Connection) extends ConnectionEvent(connection)

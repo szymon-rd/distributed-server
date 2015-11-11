@@ -32,7 +32,7 @@ trait Distribution {
     //Explained: http://docs.scala-lang.org/sips/completed/scala-2-8-arrays.html
     def distribute[T <: Distributable with Actor : ClassTag](creator: => T): Future[ActorRef] = {
       val availableWorker = (receptionist ? GetAvailableWorker).mapTo[AvailableWorker] map (_.worker)
-      availableWorker.foreach(_.load.increase(AbsoluteLoad(1.0f)))
+      availableWorker.foreach(_.load.increase(AbsoluteLoad(1.0f))) //TODO get load
       val props = availableWorker map (member => Props(creator).withDeploy(Deploy(scope = RemoteScope(member.clusterMember.address))))
       props map context.actorOf
     }

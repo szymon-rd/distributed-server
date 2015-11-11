@@ -3,36 +3,30 @@ package pl.jaca.server.chat
 import java.nio.charset.Charset
 
 import akka.actor.{Actor, ActorRef, Props}
-import akka.pattern._
-import akka.util.Timeout
 import pl.jaca.server.chat.Chat.{CreateChatroom, UserCreateChatroom}
 import pl.jaca.server.chat.Chatroom.ListenAt
 import pl.jaca.server.chat.packets.ChatPacketResolver
 import pl.jaca.server.chat.packets.in.{ChatroomPacket, JoinLobby, JoinRoom}
 import pl.jaca.server.chat.packets.out.ChatAnnouncement
 import pl.jaca.server.cluster.distribution.{AbsoluteLoad, Distributable, Distribution}
-import pl.jaca.server.proxy.Connection
-import pl.jaca.server.proxy.server.Server.{GetEventObservable, REventObservable}
-import pl.jaca.server.proxy.server.{PacketReceived, Server}
+import pl.jaca.server.proxy.server.Server
+import pl.jaca.server.proxy.{Connection, EventHandler}
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
  * @author Jaca777
  *         Created 2015-06-12 at 16
  */
-class Chat extends Actor with Distribution with Distributable {
+class Chat extends Actor with Distribution with Distributable with EventHandler {
   implicit val executionContext = context.dispatcher
-  implicit val askTimeout = Timeout(2 seconds)
 
   var nicknames = Map[Connection, String]()
   var rooms = Map[String, ActorRef]()
   var userRoom = Map[Connection, ActorRef]()
   val server = context.actorOf(Props(new Server(port = Chat.PORT, resolver = ChatPacketResolver)))
-  val packetsObservable = (server ? GetEventObservable).mapTo[REventObservable]
-    .map(_.subject).map(_.filter(_.isInstanceOf[PacketReceived]).map(_.asInstanceOf[PacketReceived]).map(_.inPacket))
+  val packetsObservable = PacketStream(server)
 
   def receive: Receive = {
     case CreateChatroom(name) =>
@@ -47,13 +41,13 @@ class Chat extends Actor with Distribution with Distributable {
 
   def createChatroom(name: String): Future[ActorRef] = {
     val future = context.distribute(new Chatroom(name))
-    val packetsFuture = packetsObservable.map(_.filter(_.isInstanceOf[ChatroomPacket]).map(_.asInstanceOf[ChatroomPacket]))
+    val packetsFuture = packetsObservable.map(_.packets[ChatroomPacket])
     for {
       ref <- future
       packets <- packetsFuture
     } {
       rooms += (name -> ref)
-      ref ! ListenAt(packets.filter(packet => userRoom(packet.sender) == ref))
+      ref ! ListenAt(packets.packetsFrom(sender => userRoom(sender) == ref))
     }
     future
   }
