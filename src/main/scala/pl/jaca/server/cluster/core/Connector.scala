@@ -1,7 +1,6 @@
 package pl.jaca.server.cluster.core
 
 import akka.cluster.Cluster
-import akka.stream.scaladsl.Source
 import pl.jaca.server.cluster.Configurable
 
 import scala.language.postfixOps
@@ -13,9 +12,6 @@ import scala.language.postfixOps
 class Connector extends ClusterNode with Configurable {
   implicit val configPath = "server-cluster"
 
-  Source.single(2).map(_ + 1).runForeach(println)
-
-  System.exit(0)
   val cluster = Cluster(context.system)
   val localClusterAddress = cluster.selfAddress
   val mainClusterAddress = localClusterAddress.copy(
