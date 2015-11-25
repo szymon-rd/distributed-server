@@ -40,7 +40,7 @@ class Chatroom(val roomName: String) extends Actor with Distributable{
 }
 object Chatroom {
   //In
-  case class Join(nick: String, channel: Connection)
+  case class Join(nick: String, connection: Connection)
   case class Message(connection: Connection, msg: String)
   case class ListenAt(observable: Observable[ChatroomPacket])
 }

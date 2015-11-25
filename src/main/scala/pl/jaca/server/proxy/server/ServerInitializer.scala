@@ -14,7 +14,7 @@ class ServerInitializer(resolver: PacketResolver, serverRef: ActorRef, connectio
     constructPipeline(channel)
   }
 
-  private def constructPipeline(channel: SocketChannel): Unit = {
+  private def constructPipeline(channel: SocketChannel) {
     val pipeline = channel.pipeline()
     pipeline.addLast(new PacketDecoder(resolver, connectionManager))
     pipeline.addLast(new ChannelHandler(connectionManager, serverRef))

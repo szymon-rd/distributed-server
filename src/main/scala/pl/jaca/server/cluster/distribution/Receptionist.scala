@@ -20,10 +20,13 @@ class Receptionist(strategy: SelectionStrategy) extends Actor with Register {
     case MemberAvailable(clusterMember) => if (!isRegistered(clusterMember)) clusterMember.register
     case MemberUnavailable(clusterMember) => if (isRegistered(clusterMember)) clusterMember.unregister
     case ListMembers => sender ! Members(registeredMembers)
-    case GetAvailableWorker => availableWorker.map(AvailableWorker).pipeTo(sender)
+    case GetAvailableWorker =>
+      availableWorker.map(AvailableWorker).pipeTo(sender)
   }
 
-  def availableWorker: Future[RegisteredMember] = anyMember.map(_ => strategy(registeredMembers))
+  def availableWorker: Future[RegisteredMember] = {
+    anyMember.map(_ => strategy(registeredMembers))
+  }
 }
 
 object Receptionist {
@@ -46,17 +49,6 @@ object Receptionist {
   object PreciseSelectionStrategy extends SelectionStrategy {
     override def apply(members: Set[RegisteredMember]): RegisteredMember =
       members.tail.foldLeft((members.head.load, members.head))((acc, member) => acc match {
-        case (load, current) => if (load > member.load) (member.load, member) else acc
-      })._2
-  }
-
-  /**
-   * Selects member with the least load in sublist of members of size membersAmount / step.
-   * @param step
-   */
-  case class ApproximateSelectionStrategy(step: Float) extends SelectionStrategy {
-    override def apply(members: Set[RegisteredMember]): RegisteredMember =
-      Random.shuffle(members).drop(Math.max(members.size / step, 1).toInt).foldLeft((NegativeLoad: Load, null: RegisteredMember))((acc, member) => acc match {
         case (load, current) => if (load > member.load) (member.load, member) else acc
       })._2
   }

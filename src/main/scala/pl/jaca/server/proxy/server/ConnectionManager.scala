@@ -5,6 +5,7 @@ import java.net.InetSocketAddress
 import akka.actor.ActorRef
 import io.netty.channel.Channel
 import pl.jaca.server.proxy.Connection
+import pl.jaca.server.proxy.server.ServerEvent._
 
 /**
  * @author Jaca777
@@ -19,12 +20,12 @@ class ConnectionManager(proxyFactory: Channel => ActorRef, server: ActorRef) {
 
   def getAllConnections: Set[Connection] = connections
 
-  def createConnection(channel: Channel): Unit = {
+  def createConnection(channel: Channel) {
     if (getConnection(channel).isEmpty) {
       val address = channel.remoteAddress().asInstanceOf[InetSocketAddress]
       val connection = new Connection(address.getHostString, address.getPort, channel, proxyFactory(channel))
       connections += connection
-      server ! Server.EventOccurred(ConnectionActive(connection))
+      server ! Server.EventOccurred(new ConnectionActive(connection))
     }
   }
 
@@ -32,7 +33,7 @@ class ConnectionManager(proxyFactory: Channel => ActorRef, server: ActorRef) {
     val connection = getConnection(channel)
     if (connection.isDefined) {
       connections -= connection.get
-      server ! Server.EventOccurred(ConnectionInactive(connection.get))
+      server ! Server.EventOccurred(new ConnectionInactive(connection.get))
     }
   }
 

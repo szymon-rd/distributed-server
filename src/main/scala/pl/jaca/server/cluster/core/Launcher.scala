@@ -12,7 +12,7 @@ class Launcher extends Actor with Configurable {
 
   val appPath = config.stringAt("application").get
   val appClass: Class[Application] = Class.forName(appPath).asInstanceOf[Class[Application]]
-  context.actorOf(Props(new Initializer(() => appClass.newInstance())))
+  context.actorOf(Props(new Initializer(() => appClass.newInstance())), "clusterInitializer")
 
   override def receive: Receive = {
     case _ => throw new RuntimeException("ClusterLauncher is not capable of receiving any messages.")
@@ -22,6 +22,6 @@ class Launcher extends Actor with Configurable {
 object Launcher {
   def main(args: Array[String]) {
     val system = ActorSystem.create("Main")
-    system.actorOf(Props[Launcher])
+    system.actorOf(Props[Launcher], "launcher")
   }
 }

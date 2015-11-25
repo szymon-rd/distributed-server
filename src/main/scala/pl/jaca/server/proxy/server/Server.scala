@@ -1,12 +1,11 @@
 package pl.jaca.server.proxy.server
 
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import akka.util.Timeout
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import pl.jaca.server.proxy.server.Server._
-import rx.lang.scala.{Observable, Subject}
 
 import scala.concurrent.duration._
 
@@ -15,6 +14,7 @@ import scala.concurrent.duration._
  *         Created 2015-06-12 at 16
  */
 class Server(val port: Int, val resolver: PacketResolver) extends Actor {
+
   val bossGroup = new NioEventLoopGroup
   val workersGroup = new NioEventLoopGroup
   val connectionManager = new ConnectionManager(c => context.actorOf(Props(new ConnectionProxy(c))), self)
@@ -26,33 +26,28 @@ class Server(val port: Int, val resolver: PacketResolver) extends Actor {
 
   implicit val timeout = Timeout(2.seconds)
   implicit val dispatcher = context.dispatcher
-
-  val eventSubject = Subject[Event]()
-
-  def receive: Receive = {
-    case EventOccurred(event) => eventSubject.onNext(event)
+  
+  def receive = running(Set.empty)
+  
+  def running(subscribers: Set[ActorRef]): Receive = {
+    case EventOccurred(event) => subscribers.foreach(_ ! event)
     case Stop => shutdown()
-    case GetEventObservable => sender ! REventObservable(eventSubject)
+    case Subscribe => context become running(subscribers + sender)
   }
 
   def shutdown() {
     bossGroup.shutdownGracefully()
     workersGroup.shutdownGracefully()
-    eventSubject.onCompleted()
   }
 }
 
 object Server {
 
+  case class Subscribe(eventActor: ActorRef)
+
   //IN
   object Stop
 
-  object GetEventObservable
-
-  case class EventOccurred(event: Event)
-
-  //OUT
-  type EventStream = Observable[Event]
-  case class REventObservable(stream: EventStream)
+  case class EventOccurred(event: ServerEvent)
 
 }

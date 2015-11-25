@@ -21,12 +21,12 @@ class AbsoluteLoad(initialLoad: Float) extends PrivilegedLoad {
 
   def getLoad: Float = load
 
-  def setLoad(load: Float): Unit = {
+  def setLoad(load: Float) = {
     if (load < 0) throw new IllegalArgumentException("Load can't be negative")
     this.load = load
   }
 
-  override def increase(load: Load): Unit = load match {
+  override def increase(load: Load) = load match {
     case AbsoluteLoad(f) =>
       this.load += f
   }
@@ -53,7 +53,7 @@ object NegativeLoad extends AbsoluteLoad(0) {
   }
 
 
-  override def setLoad(load: Float): Unit = {}
+  override def setLoad(load: Float) {}
 
   override def getLoad: Float = -1
 }

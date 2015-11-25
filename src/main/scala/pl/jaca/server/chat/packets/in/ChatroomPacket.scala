@@ -6,4 +6,4 @@ import pl.jaca.server.proxy.packets.InPacket
  * @author Jaca777
  *         Created 2015-06-16 at 23
  */
-abstract trait ChatroomPacket extends InPacket
+trait ChatroomPacket extends InPacket

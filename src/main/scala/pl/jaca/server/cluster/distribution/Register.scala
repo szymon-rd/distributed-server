@@ -27,13 +27,13 @@ trait Register extends ActorLogging {
   private var loadFactory: (Member => Load) = (_ => new AbsoluteLoad(0))
   var registeredMembers: Set[RegisteredMember] = Set()
 
-  def useLoadFactory(factory: Member => Load): Unit = {
+  def useLoadFactory(factory: Member => Load) = {
     this.loadFactory = factory
   }
 
   def register(member: Member): Try[RegisteredMember] = {
     registeredMembers.find(_.clusterMember == member) match {
-      case Some(registeredMember) => Failure(new RegisterException(s"Unable to register a member. The given member is already registered: ${member.address}"))
+      case Some(_) => Failure(new RegisterException(s"Unable to register a member. The given member is already registered: ${member.address}"))
       case None =>
         val registeredMember = new RegisteredMember(member, loadFactory(member))
         registeredMembers += registeredMember
@@ -47,7 +47,7 @@ trait Register extends ActorLogging {
     registeredMembers.find(_.clusterMember == member) match {
       case Some(toUnregister) =>
         registeredMembers = registeredMembers.filterNot(_.clusterMember == member)
-        if (memberPromise.future.value.get.get == toUnregister) memberPromise = Promise[RegisteredMember]
+        if (registeredMembers.isEmpty) memberPromise = Promise[RegisteredMember]
         log.debug(s"Member successfully unregistered. Address: ${member.address}")
         Success(toUnregister)
       case None => Failure(new RegisterException(s"Member unregistration failed. Requested member not found: ${member.address}"))

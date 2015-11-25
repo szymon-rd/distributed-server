@@ -8,6 +8,8 @@ import akka.actor.Actor
  */
 trait AkkaTools {
   class DummyActor extends Actor {
-    override def receive: Receive = ???
+    override def receive: Receive = {
+      case _ =>
+    }
   }
 }

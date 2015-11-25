@@ -1,10 +1,10 @@
 package pl.jaca.server.cluster.core
 
 import akka.actor.SupervisorStrategy.{Escalate, Stop}
-import akka.actor.{Props, ActorRef, AllForOneStrategy, Actor}
-import akka.util.Timeout
+import akka.actor.{Actor, ActorRef, AllForOneStrategy, Props}
 import akka.pattern._
-import pl.jaca.server.cluster.{ApplicationNode, ApplicationNode$}
+import akka.util.Timeout
+import pl.jaca.server.cluster.ApplicationNode
 import pl.jaca.server.cluster.ApplicationNode._
 import pl.jaca.server.cluster.core.ClusterNode.CreateListener
 import pl.jaca.server.oldcluster.FatalClusterError
@@ -24,14 +24,14 @@ abstract class ClusterNode extends Actor {
     case _ => Escalate
   }
 
-  val appNode = context.actorOf(Props[ApplicationNode])
+  val appNode = context.actorOf(Props[ApplicationNode], "appNode")
   implicit val timeout = Timeout(2 seconds)
   val receptionist = (appNode ? GetReceptionist).mapTo[Receptionist] map (_.receptionist)
   receptionist map (receptionist => CreateListener(Set(receptionist))) pipeTo self
 
   override def receive: Receive = {
     case CreateListener(subscribers) =>
-      context.actorOf(Props(new Listener(subscribers)))
+      context.actorOf(Props(new Listener(subscribers)), "listener")
   }
 }
 object ClusterNode {

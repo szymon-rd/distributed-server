@@ -16,17 +16,18 @@ class Connection(val host: String, val port: Int, channel: Channel, val proxy: A
 
   private val channelID = channel.id()
 
-  def write(packet: OutPacket): Unit = {
+  def write(packet: OutPacket) {
     proxy.tell(ForwardPacket(packet), ActorRef.noSender)
   }
 
   override def hashCode(): Int = channel.hashCode()
 
   override def equals(obj: Any): Boolean =
-    if (obj.isInstanceOf[Connection]) {
-      val connection = obj.asInstanceOf[Connection]
-      channelID == connection.channelID
-    } else false
+    obj match {
+      case connection: Connection =>
+        channelID == connection.channelID
+      case _ => false
+    }
 
   def channelEquals(channel: Channel): Boolean = channelID == channel.id()
 }

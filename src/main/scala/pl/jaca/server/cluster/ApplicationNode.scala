@@ -16,7 +16,7 @@ class ApplicationNode extends Actor with DistributionInitializer with Distributi
 
   override def receive: Receive = {
     case ApplicationNode.Launch(appFactory) =>
-      val app = context.actorOf(Props(appFactory()))
+      val app = context.actorOf(Props(appFactory()), "app")
       app ! Application.Launch
     case ApplicationNode.GetReceptionist => sender ! ApplicationNode.Receptionist(receptionist)
   }
