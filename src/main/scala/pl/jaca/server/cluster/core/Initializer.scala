@@ -4,7 +4,7 @@ import akka.actor.SupervisorStrategy.{Escalate, Stop}
 import akka.actor._
 import akka.cluster.Cluster
 import pl.jaca.server.cluster.Application
-import pl.jaca.server.cluster.ApplicationNode.Launch
+import pl.jaca.server.cluster.SystemNode.Launch
 import pl.jaca.server.oldcluster.FatalClusterError
 
 import scala.concurrent.duration._

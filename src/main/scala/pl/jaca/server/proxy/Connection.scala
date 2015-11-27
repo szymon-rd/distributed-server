@@ -3,6 +3,7 @@ package pl.jaca.server.proxy
 
 import akka.actor.ActorRef
 import io.netty.channel.Channel
+import io.netty.channel.embedded.EmbeddedChannel
 import pl.jaca.server.proxy.packets.OutPacket
 import pl.jaca.server.proxy.server.ConnectionProxy.ForwardPacket
 
@@ -30,5 +31,15 @@ class Connection(val host: String, val port: Int, channel: Channel, val proxy: A
     }
 
   def channelEquals(channel: Channel): Boolean = channelID == channel.id()
+}
+
+object Connection {
+
+  object NoConnection extends Connection(null, -1, new EmbeddedChannel , ActorRef.noSender) {
+    override def write(packet: OutPacket) {
+      throw new UnsupportedOperationException
+    }
+  }
+
 }
 

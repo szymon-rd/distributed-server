@@ -14,6 +14,8 @@ import pl.jaca.server.proxy.server.Server.Subscribe
  */
 class ChatServer extends Actor with Distribution with Distributable {
 
+  implicit val executionContext = context.dispatcher
+
   val server = context.actorOf(Props(new Server(1337, ChatPacketResolver)), "server")
   val authFuture = context.distribute(new AuthenticationHandler, "userAuth")
   val pmFuture = context.distribute(new PrivateMessaging, "pMessaging")

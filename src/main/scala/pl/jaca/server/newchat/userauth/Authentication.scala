@@ -15,6 +15,7 @@ import scala.concurrent.duration._
  *         Created 2015-11-25 at 17
  */
 trait Authentication extends Actor {
+  implicit val executionContext = context.dispatcher
   implicit val timeout = Timeout(2 seconds)
   private val authActor = context.actorSelection(Application.appActorPath + "/chat/userAuth")
 

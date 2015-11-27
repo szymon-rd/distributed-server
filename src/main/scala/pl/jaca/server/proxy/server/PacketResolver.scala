@@ -11,11 +11,11 @@ import pl.jaca.server.proxy.packets.InPacket
 abstract class PacketResolver {
   type Resolve = PartialFunction[Short, (Short, Short, Array[Byte], Connection) => InPacket]
 
-  def resolve(t: Short, length: Short, rest: Array[Byte], sender: Connection): InPacket = (resolve orElse unknown)(t)(t, length, rest, sender)
+  def resolve(id: Short, length: Short, data: Array[Byte], sender: Connection): InPacket = (resolve orElse unknown)(id)(id, length, data, sender)
 
   private val unknown: Resolve = {
     case _ => UnknownPacket
   }
   def resolve: Resolve
 }
-case class UnknownPacket(i: Short, l: Short, rest: Array[Byte], s: Connection) extends InPacket(i,l,rest,s)
+case class UnknownPacket(i: Short, l: Short, data: Array[Byte], s: Connection) extends InPacket(i,l,data,s)

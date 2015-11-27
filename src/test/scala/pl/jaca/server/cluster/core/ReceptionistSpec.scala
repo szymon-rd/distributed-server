@@ -24,26 +24,45 @@ class ReceptionistSpec extends TestKit(ActorSystem("ReceptionistSpec")) with Imp
 
   "Receptionist actor" must {
 
-    val receptionist = TestActorRef(new Receptionist(PreciseSelectionStrategy))
-    val member1 = createClusterMember(new Address("a", "a1"))
-    val member2 = createClusterMember(new Address("a", "a2"))
-    val member3 = createClusterMember(new Address("a", "a3"))
-    receptionist ! MemberAvailable(member1)
-    receptionist ! MemberAvailable(member2)
-    receptionist ! MemberAvailable(member3)
 
-    val members = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members.toList
+    "collect available members" in {
+      val receptionist = TestActorRef(new Receptionist(PreciseSelectionStrategy))
+      val member1 = createClusterMember(new Address("a", "a1"))
+      val member2 = createClusterMember(new Address("a", "a2"))
+      val member3 = createClusterMember(new Address("a", "a3"))
+      receptionist ! MemberAvailable(member1)
+      receptionist ! MemberAvailable(member2)
+      receptionist ! MemberAvailable(member3)
 
-    "correctly manage and list registered members" in {
-      members.map(_.clusterMember) should containAll(member1, member2, member3)
-      receptionist ! MemberUnavailable(member1)
+      val members = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members.toList
+      members.map(_.clusterMember) should containOnly(member1, member2, member3)
+    }
+
+    "remove unavailable members" in {
+      val receptionist = TestActorRef(new Receptionist(PreciseSelectionStrategy))
+      val member1 = createClusterMember(new Address("a", "a1"))
+      val member2 = createClusterMember(new Address("a", "a2"))
+      val member3 = createClusterMember(new Address("a", "a3"))
+      receptionist ! MemberAvailable(member1)
+      receptionist ! MemberAvailable(member2)
+      receptionist ! MemberAvailable(member3)
+      receptionist ! MemberUnavailable(member2)
+
       val newState = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members
-      newState.map(_.clusterMember) should containOnly(member2)
+      newState.map(_.clusterMember) should be(Set(member1, member3))
     }
 
 
-    "compare load of each members when available member is requested" in {
+
+    "use selection strategy when worker is requested" in {
+      val receptionist = TestActorRef(new Receptionist(PreciseSelectionStrategy))
+      val member1 = createClusterMember(new Address("a", "a1"))
+      val member2 = createClusterMember(new Address("a", "a2"))
+      val member3 = createClusterMember(new Address("a", "a3"))
+      receptionist ! MemberAvailable(member2)
+      receptionist ! MemberAvailable(member3)
       receptionist ! MemberAvailable(member1)
+      val members = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members.toList
       val lMember1 = members(0)
       val lMember2 = members(1)
       val lMember3 = members(2)
@@ -55,7 +74,8 @@ class ReceptionistSpec extends TestKit(ActorSystem("ReceptionistSpec")) with Imp
       load3.setLoad(3.0f)
       Await.result(receptionist ? GetAvailableWorker, timeout.duration).asInstanceOf[AvailableWorker].worker.clusterMember should be(lMember2.clusterMember)
       load2.setLoad(8.0f)
-      Await.result(receptionist ? GetAvailableWorker, timeout.duration).asInstanceOf[AvailableWorker].worker.clusterMember should be(lMember1.clusterMember)
+      load1.setLoad(4.0f)
+      Await.result(receptionist ? GetAvailableWorker, timeout.duration).asInstanceOf[AvailableWorker].worker.clusterMember should be(lMember3.clusterMember)
     }
 
   }

@@ -17,11 +17,11 @@ import scala.language.postfixOps
 class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with ImplicitSender with WordSpecLike with Matchers with CollectionMatchers {
   implicit val timeout = Timeout(2 seconds)
 
-  case class DummyEvent1(i: Int) extends Event
+  case class TestEvent1(i: Int) extends Event
 
-  case class DummyEvent2(s: String) extends Event
+  case class TestEvent2(s: String) extends Event
 
-  case class DummyEvent3(b: Boolean) extends Event
+  case class TestEvent3(b: Boolean) extends Event
 
   var messages: Set[String] = Set()
 
@@ -36,12 +36,12 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
     val stream = AsyncEventStream()
 
     stream react {
-      case DummyEvent1(i) =>
+      case TestEvent1(i) =>
         Action {
           foo(i)
         }
-      case DummyEvent2(s) => Route(testActor2)
-      case DummyEvent3(b) => Ignore
+      case TestEvent2(s) => Route(testActor2)
+      case TestEvent3(b) => Ignore
     }
 
     def foo(i: Int) = out(s"Actor1 $i")
@@ -52,10 +52,12 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
     val stream = AsyncEventStream()
 
     stream react {
-      case DummyEvent2(s) =>
-        Action {
-          bar(s)
-        }
+      case TestEvent2(s) => Action {
+        bar(s)
+      }
+      case TestEvent3(b) => Action {
+        bar(b.toString)
+      }
     }
 
     def bar(s: String) = out(s"Actor2 $s")
@@ -63,13 +65,26 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
 
   "EventActor" must {
     "handle events" in {
-      testActor1 ! DummyEvent2("lol")
-      testActor1 ! DummyEvent1(69)
-      testActor1 ! DummyEvent2("lol")
-      testActor1 ! DummyEvent2("lol")
-      testActor1 ! DummyEvent2("lol")
-      testActor1 ! DummyEvent3(false)
-      messages should containAll ("Actor1 69", "Actor2 lol", "Actor2 lol", "Actor2 lol", "Actor2 lol")
+      messages = Set.empty
+      testActor1 ! TestEvent1(1)
+      testActor1 ! TestEvent1(2)
+      testActor1 ! TestEvent1(3)
+      messages should be(Set("Actor1 1", "Actor1 2", "Actor1 3"))
+    }
+    "route events" in {
+      messages = Set.empty
+      testActor1 ! TestEvent2("a")
+      testActor1 ! TestEvent1(9)
+      testActor1 ! TestEvent2("b")
+      messages should be(Set("Actor1 9", "Actor2 a", "Actor2 b"))
+    }
+    "ignore events" in {
+      messages = Set.empty
+      testActor1 ! TestEvent1(3)
+      testActor1 ! TestEvent3(true)
+      testActor1 ! TestEvent2("b")
+      testActor1 ! TestEvent3(false)
+      messages should be(Set("Actor1 3", "Actor2 b"))
     }
   }
 
