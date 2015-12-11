@@ -11,13 +11,15 @@ private[proxy] trait Event
  
 sealed trait ServerEvent extends Event
 
+sealed trait ServerStateEvent extends ServerEvent
+
 object ServerEvent {
 
-  case class ConnectionEvent(connection: Connection) extends ServerEvent
+  abstract class ConnectionEvent(connection: Connection) extends ServerStateEvent
 
-  class ConnectionActive(con: Connection) extends ConnectionEvent(con)
+  case class ConnectionActive(con: Connection) extends ConnectionEvent(con)
 
-  class ConnectionInactive(con: Connection) extends ConnectionEvent(con)
+  case class ConnectionInactive(con: Connection) extends ConnectionEvent(con)
 
   private[proxy] trait InPacketEvent extends ServerEvent
 

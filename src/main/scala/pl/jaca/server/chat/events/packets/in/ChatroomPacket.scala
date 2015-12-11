@@ -1,4 +1,4 @@
-package pl.jaca.server.chat.packets.in
+package pl.jaca.server.chat.events.packets.in
 
 import pl.jaca.server.proxy.packets.InPacket
 

@@ -17,23 +17,42 @@ class PacketResolverSpec extends TestKit(ActorSystem("PacketResolverSpec")) with
 
   case class TestPacketB(i: Short, l: Short, m: Array[Byte], c: Connection) extends InPacket(i, l, m, c)
 
-  object TestPacketResolver extends PacketResolver {
+  object TestPacketResolverA extends PacketResolver {
     override def resolve: Resolve = {
       case 1337 => TestPacketA
       case 997 => TestPacketB
     }
   }
 
+  object TestPacketResolverB extends PacketResolver {
+    override def resolve: Resolve = {
+      case 231 => TestPacketB
+      case 997 => TestPacketA
+    }
+  }
+
   "PacketResolver" must {
-    "correctly construct packets" in {
-      val packet = TestPacketResolver.resolve(1337, 9, Array[Byte](9,0,0,0), Connection.NoConnection)
+    "construct packets" in {
+      val packet = TestPacketResolverA.resolve(1337, 9, Array[Byte](9,0,0,0), Connection.NoConnection)
       packet.msg should be(Array[Byte](9,0,0,0))
     }
     "recognize packets" in {
-      val packetA = TestPacketResolver.resolve(1337, 9, Array[Byte](9,0,0,0), Connection.NoConnection)
-      val packetB = TestPacketResolver.resolve(997, 9, Array[Byte](9,0,0,0), Connection.NoConnection)
+      val packetA = TestPacketResolverA.resolve(1337, 9, Array[Byte](9,0,0,0), Connection.NoConnection)
+      val packetB = TestPacketResolverA.resolve(997, 9, Array[Byte](9,0,0,0), Connection.NoConnection)
       packetA should be(anInstanceOf[TestPacketA])
       packetB should be(anInstanceOf[TestPacketB])
+    }
+    "combine with other resolvers" in {
+      val resolver = TestPacketResolverA and TestPacketResolverB
+      val packetA = resolver.resolve(1337, 9, Array[Byte](9,0,0,0), Connection.NoConnection)
+      val packetB = resolver.resolve(231, 9, Array[Byte](9,0,0,0), Connection.NoConnection)
+      packetA should be(anInstanceOf[TestPacketA])
+      packetB should be(anInstanceOf[TestPacketB])
+    }
+    "combine with other resolvers (resolving order)" in {
+      val resolver = TestPacketResolverA and TestPacketResolverB
+      val packet = resolver.resolve(997, 9, Array[Byte](9,0,0,0), Connection.NoConnection)
+      packet should be(anInstanceOf[TestPacketA])
     }
   }
 }

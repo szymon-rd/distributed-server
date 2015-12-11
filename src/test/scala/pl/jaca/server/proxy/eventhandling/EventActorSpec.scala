@@ -7,6 +7,7 @@ import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.proxy.server.Event
 import pl.jaca.testutils.CollectionMatchers
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -23,6 +24,8 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
 
   case class TestEvent3(b: Boolean) extends Event
 
+  case class TestEvent4() extends Event
+
   var messages: Set[String] = Set()
 
   def out(s: String): Unit = {
@@ -31,6 +34,7 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
 
   val testActor1 = TestActorRef(new TestEventActor)
   val testActor2 = TestActorRef(new TestEventActor2)
+  val futureTestActor = TestActorRef(new FutureTestEventActor)
 
   class TestEventActor extends EventActor {
     val stream = AsyncEventStream()
@@ -63,6 +67,19 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
     def bar(s: String) = out(s"Actor2 $s")
   }
 
+  class FutureTestEventActor extends EventActor {
+    val stream = AsyncEventStream()
+
+    stream react {
+      case TestEvent3(b) => FutureAction {
+        Future(qux(b))
+      }
+    }
+
+    def qux(b: Boolean) = out(s"Actor3 $b")
+  }
+
+
   "EventActor" must {
     "handle events" in {
       messages = Set.empty
@@ -71,6 +88,15 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
       testActor1 ! TestEvent1(3)
       messages should be(Set("Actor1 1", "Actor1 2", "Actor1 3"))
     }
+
+    "handle events with futures" in {
+      messages = Set.empty
+      futureTestActor ! TestEvent3(true)
+      within(50 millis) {
+        messages should be(Set("Actor3 true"))
+      }
+    }
+
     "route events" in {
       messages = Set.empty
       testActor1 ! TestEvent2("a")
@@ -78,6 +104,7 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
       testActor1 ! TestEvent2("b")
       messages should be(Set("Actor1 9", "Actor2 a", "Actor2 b"))
     }
+
     "ignore events" in {
       messages = Set.empty
       testActor1 ! TestEvent1(3)
@@ -86,6 +113,12 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
       testActor1 ! TestEvent3(false)
       messages should be(Set("Actor1 3", "Actor2 b"))
     }
+
+    "do not throw exception on unhandled event" in {
+      testActor1 ! TestEvent4() //shouldn't throw exception
+    }
+
+
   }
 
 }

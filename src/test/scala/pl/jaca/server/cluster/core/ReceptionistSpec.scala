@@ -9,6 +9,7 @@ import pl.jaca.server.cluster.core.Listener._
 import pl.jaca.server.cluster.distribution.{AbsoluteLoad, Receptionist}
 import pl.jaca.server.cluster.distribution.Receptionist._
 import pl.jaca.testutils.CollectionMatchers
+import pl.jaca.testutils.server.ClusterTools
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

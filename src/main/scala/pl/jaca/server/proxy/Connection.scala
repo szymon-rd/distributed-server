@@ -35,7 +35,7 @@ class Connection(val host: String, val port: Int, channel: Channel, val proxy: A
 
 object Connection {
 
-  object NoConnection extends Connection(null, -1, new EmbeddedChannel , ActorRef.noSender) {
+  object NoConnection extends Connection(null, -1, new EmbeddedChannel, ActorRef.noSender) {
     override def write(packet: OutPacket) {
       throw new UnsupportedOperationException
     }

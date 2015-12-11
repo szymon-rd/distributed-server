@@ -1,6 +1,7 @@
-package pl.jaca.server.cluster.core
+package pl.jaca.testutils
 
 import akka.actor.Actor
+import akka.testkit.TestProbe
 
 /**
  * @author Jaca777
@@ -10,6 +11,12 @@ trait AkkaTools {
   class DummyActor extends Actor {
     override def receive: Receive = {
       case _ =>
+    }
+  }
+
+  implicit class TestProbeImplicit(testProbe: TestProbe) {
+    def ignoreAll() {
+      testProbe.ignoreMsg({case _ => true})
     }
   }
 }

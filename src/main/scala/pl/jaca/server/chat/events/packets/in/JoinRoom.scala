@@ -1,7 +1,5 @@
-package pl.jaca.server.chat.packets.in
+package pl.jaca.server.chat.events.packets.in
 
-import io.netty.buffer.ByteBuf
-import io.netty.channel.Channel
 import pl.jaca.server.chat.Chat._
 import pl.jaca.server.proxy.Connection
 import pl.jaca.server.proxy.packets.InPacket

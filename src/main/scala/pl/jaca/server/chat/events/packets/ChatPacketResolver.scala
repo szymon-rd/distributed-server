@@ -1,6 +1,6 @@
-package pl.jaca.server.chat.packets
+package pl.jaca.server.chat.events.packets
 
-import pl.jaca.server.chat.packets.in.{JoinLobby, JoinRoom, Send}
+import pl.jaca.server.chat.events.packets.in.{JoinLobby, JoinRoom, Send}
 import pl.jaca.server.proxy.server.PacketResolver
 
 /**

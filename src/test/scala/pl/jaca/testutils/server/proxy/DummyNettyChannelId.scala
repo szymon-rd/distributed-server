@@ -1,4 +1,4 @@
-package pl.jaca.testutils
+package pl.jaca.testutils.server.proxy
 
 import io.netty.channel.ChannelId
 
@@ -6,7 +6,7 @@ import io.netty.channel.ChannelId
  * @author Jaca777
  *         Created 2015-11-27 at 22
  */
-class MockNettyChannelId(id: Int) extends ChannelId{
+class DummyNettyChannelId(id: Int) extends ChannelId{
   override def asLongText(): String = id.toString
 
   override def asShortText(): String = id.toString

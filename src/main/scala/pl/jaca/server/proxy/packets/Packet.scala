@@ -1,6 +1,5 @@
 package pl.jaca.server.proxy.packets
 
-import io.netty.buffer.ByteBuf
 
 /**
  * @author Jaca777

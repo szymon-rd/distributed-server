@@ -1,7 +1,8 @@
-package pl.jaca.server.cluster.core
+package pl.jaca.testutils.server
 
 import akka.actor.Address
-import akka.cluster.{UniqueAddress, Member}
+import akka.cluster.{Member, UniqueAddress}
+import pl.jaca.testutils.AkkaTools
 
 /**
  * @author Jaca777

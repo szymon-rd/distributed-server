@@ -6,6 +6,7 @@ import akka.testkit.{TestActorRef, TestKit}
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.cluster.distribution.Receptionist.PreciseSelectionStrategy
 import pl.jaca.server.cluster.distribution.{AbsoluteLoad, Register, RegisteredMember}
+import pl.jaca.testutils.server.ClusterTools
 
 /**
  * @author Jaca777
