@@ -1,6 +1,7 @@
 package pl.jaca.server.newchat
 
-import akka.actor.{Actor, Props}
+import akka.actor.Props
+import pl.jaca.server.ServerApp
 import pl.jaca.server.cluster.distribution.{AbsoluteLoad, Distributable, Distribution, Load}
 import pl.jaca.server.newchat.messaging.{PrivateMessaging, SharedMessaging}
 import pl.jaca.server.newchat.packets.ChatPacketResolver
@@ -12,7 +13,7 @@ import pl.jaca.server.proxy.server.Server.Subscribe
  * @author Jaca777
  *         Created 2015-11-25 at 17
  */
-class ChatServer extends Actor with Distribution with Distributable {
+class ChatServer extends ServerApp with Distribution with Distributable {
 
   implicit val executionContext = context.dispatcher
 

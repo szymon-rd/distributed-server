@@ -7,7 +7,7 @@ import akka.util.Timeout
 import pl.jaca.server.cluster.SystemNode
 import pl.jaca.server.cluster.SystemNode._
 import pl.jaca.server.cluster.core.ClusterNode.CreateListener
-import pl.jaca.server.oldcluster.FatalClusterError
+
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

@@ -21,6 +21,15 @@ trait Configurable extends Actor {
       val absolutePath = s"$path.$value"
       if (config.hasPath(absolutePath)) Some(config.getInt(absolutePath)) else None
     }
+
+    def stringsAt(value: String)(implicit path: String): Option[Array[String]] = ???
+
   }
 
+  def requireConfig(cond: Boolean, message: String) =
+    if (!cond) throw new ConfigurationException(message)
+
+
 }
+
+class ConfigurationException(s: String) extends RuntimeException

@@ -1,6 +1,8 @@
 package pl.jaca.server.cluster
 
 import akka.actor.{Actor, ActorRef, Props}
+import akka.cluster.Cluster
+import pl.jaca.server.cluster.SystemNode.Shutdown
 import pl.jaca.server.cluster.distribution.Distribution.DistributionInitializer
 import pl.jaca.server.cluster.distribution.Receptionist.PreciseSelectionStrategy
 import pl.jaca.server.cluster.distribution.{Distribution, Receptionist}
@@ -11,6 +13,7 @@ import pl.jaca.server.cluster.distribution.{Distribution, Receptionist}
  */
 class SystemNode extends Actor with DistributionInitializer with Distribution {
 
+  val cluster = Cluster(context.system)
   val receptionist = context.actorOf(Props(new Receptionist(PreciseSelectionStrategy)))
   setReceptionist(receptionist)
 
@@ -19,13 +22,16 @@ class SystemNode extends Actor with DistributionInitializer with Distribution {
       val app = context.actorOf(Props(appFactory()), "app")
       app ! Application.Launch
     case SystemNode.GetReceptionist => sender ! SystemNode.Receptionist(receptionist)
+    case Shutdown => context.system.terminate()
   }
 }
 
 object SystemNode {
   
   case class Launch(appFactory: () => _ <: Application)
-  
+
+  object Shutdown
+
   /**
    * Input message. When received, Node responses with object containing reference to receptionist actor.
    */
