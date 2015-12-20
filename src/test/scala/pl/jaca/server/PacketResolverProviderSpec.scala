@@ -1,0 +1,102 @@
+package pl.jaca.server
+
+import com.typesafe.config.ConfigFactory
+import org.scalatest.{Matchers, WordSpecLike}
+import pl.jaca.server.PacketResolverProviderSpec._
+import pl.jaca.server.packets.InPacket
+import pl.jaca.server.networking.PacketResolver
+
+/**
+ * @author Jaca777
+ *         Created 2015-12-17 at 20
+ */
+class PacketResolverProviderSpec extends WordSpecLike with Matchers {
+
+  val properConfig1 = ConfigFactory.load("pl/jaca/server/conf1.conf")
+  val wrongConfig1 = ConfigFactory.load("pl/jaca/server/conf2.conf")
+  val wrongConfig2 = ConfigFactory.load("pl/jaca/server/conf3.conf")
+  val wrongConfig3 = ConfigFactory.load("pl/jaca/server/conf4.conf")
+  val wrongConfig4 = ConfigFactory.load("pl/jaca/server/conf4.conf")
+
+  "PacketResolverProvider" must {
+    "load resolvers from config" in {
+      val provider = new PacketResolverProvider(properConfig1)
+      val resolver = provider.getResolver
+      val packet = resolver.resolve(1, 2, null, null)
+      packet shouldBe a[TestPacketA]
+    }
+    "combine given resolvers" in {
+      val provider = new PacketResolverProvider(properConfig1)
+      val resolver = provider.getResolver
+      val packet = resolver.resolve(3, 2, null, null)
+      packet shouldBe a[TestPacketC]
+    }
+    "keep resolving order" in {
+      val provider = new PacketResolverProvider(properConfig1)
+      val resolver = provider.getResolver
+      val packet = resolver.resolve(2, 2, null, null)
+      packet shouldBe a[TestPacketC]
+    }
+    "throw exception when class in not type of resolver" in {
+      intercept[ServerConfigException] {
+        new PacketResolverProvider(wrongConfig1)
+      }.getMessage should be ("Resolver pl.jaca.server.PacketResolverProviderSpec$SomeClass is not type of PacketResolver.")
+    }
+    "throw exception when class is not found" in {
+      intercept[ServerConfigException] {
+        new PacketResolverProvider(wrongConfig2)
+      }.getCause shouldBe a[ClassNotFoundException]
+    }
+    "throw exception when class has no parameterless constructor defined" in {
+      intercept[ServerConfigException] {
+        new PacketResolverProvider(wrongConfig3)
+      }.getMessage should be ("Resolver pl.jaca.server.PacketResolverProviderSpec$ParametrizedResolver has no parameterless constructor defined.")
+    }
+    "throw exception when class is abstract" in {
+      intercept[ServerConfigException] {
+        new PacketResolverProvider(wrongConfig4)
+      }.getMessage should be("Resolver pl.jaca.server.PacketResolverProviderSpec$ParametrizedResolver is an abstract class.")
+    }
+  }
+
+}
+
+object PacketResolverProviderSpec {
+
+  case class TestPacketA(i: Short, l: Short, m: Array[Byte], s: Connection) extends InPacket(i, l, m, s)
+
+  case class TestPacketB(i: Short, l: Short, m: Array[Byte], s: Connection) extends InPacket(i, l, m, s)
+
+  case class TestPacketC(i: Short, l: Short, m: Array[Byte], s: Connection) extends InPacket(i, l, m, s)
+
+  class ResolverA extends PacketResolver {
+    override def resolve: Resolve = {
+      case 1 => TestPacketA
+      case 2 => TestPacketB
+    }
+  }
+
+  class ResolverB extends PacketResolver {
+    override def resolve: Resolve = {
+      case 3 => TestPacketC
+    }
+  }
+
+  class ResolverC extends PacketResolver {
+    override def resolve: Resolve = {
+      case 2 => TestPacketC
+    }
+  }
+
+  class SomeClass
+
+  class ParametrizedResolver(someParameter: Any) extends PacketResolver {
+    override def resolve: Resolve = throw new UnsupportedOperationException
+  }
+
+  abstract class AbstractResolver extends PacketResolver
+
+}
+
+
+

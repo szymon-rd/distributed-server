@@ -1,7 +1,7 @@
 package pl.jaca.testutils.server.proxy
 
 import akka.actor.ActorRef
-import pl.jaca.server.proxy.Connection
+import pl.jaca.server.Connection
 
 /**
  * @author Jaca777

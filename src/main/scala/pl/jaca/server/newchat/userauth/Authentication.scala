@@ -3,9 +3,10 @@ package pl.jaca.server.newchat.userauth
 import akka.actor.Actor
 import akka.pattern._
 import akka.util.Timeout
-import pl.jaca.server.cluster.Application
+import pl.jaca.cluster.Application
+import pl.jaca.server.Connection
+import pl.jaca.server.newchat.model.domain.ChatUser
 import pl.jaca.server.newchat.userauth.UserAuth.{GetUser, User}
-import pl.jaca.server.proxy.Connection
 
 import scala.concurrent.Future
 import scala.concurrent.duration._

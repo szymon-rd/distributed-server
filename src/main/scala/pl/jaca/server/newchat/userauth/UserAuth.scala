@@ -1,7 +1,8 @@
 package pl.jaca.server.newchat.userauth
 
 import akka.actor.Actor
-import pl.jaca.server.proxy.Connection
+import pl.jaca.server.Connection
+import pl.jaca.server.newchat.model.domain.ChatUser
 
 /**
  * @author Jaca777

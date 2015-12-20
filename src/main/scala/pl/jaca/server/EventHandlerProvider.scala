@@ -5,8 +5,8 @@ import java.lang.reflect.Constructor
 
 import com.typesafe.config.Config
 import pl.jaca.server.EventHandlerProvider._
-import pl.jaca.server.proxy.eventhandling.EventActor
-import pl.jaca.server.proxy.service.Service
+import pl.jaca.server.eventhandling.EventActor
+import pl.jaca.server.service.Service
 
 /**
  * @author Jaca777
@@ -15,7 +15,6 @@ import pl.jaca.server.proxy.service.Service
 private[server] class EventHandlerProvider(config: Config, services: ServiceProvider) {
   private val handlersEntry = config.getStringList(handlersPath).toArray.map(_.asInstanceOf[String])
 
-  //TODO Split moar
   private val actorsProps = handlersEntry.map {
     className =>
       val classLoader = this.getClass.getClassLoader
@@ -23,24 +22,24 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
       val constructor = clazz.getConstructors.find(_.getParameterTypes
         .forall(classOf[Service].isAssignableFrom))
       if (constructor.isDefined) newFactory(constructor.get)
-      else throw new ServerInitializationException("EventHandler " + className + " doesn't contain constructor with injectable types.")
+      else throw new ServerConfigException("EventHandler " + className + " doesn't contain constructor with injectable types.")
   }
 
   /**
    * Creates new instance of EventActor factory with given constructor.
    */
-  private def newFactory(constructor: Constructor[_]): (=> EventActor) = {
+  private def newFactory(constructor: Constructor[_]): (() => EventActor) = {
     val services = resolveServices(constructor.getParameterTypes)
-    constructor.newInstance(services).asInstanceOf[EventActor]
+    () => constructor.newInstance(services).asInstanceOf[EventActor]
   }
 
   /**
    * Finds services of given types.
    * @return List of services
-   * @throws ServerInitializationException when service is not found in config.
+   * @throws ServerConfigException when service is not found in config.
    */
   private def resolveServices(classes: Array[Class[_]]) = {
-    val options = classes.map(c => (c, getService(c)))
+    val options = classes.map(c => (c, services.getService(c.getName)))
     val unknownServices = options.filter(_._2.isEmpty).map(_._1)
     if (unknownServices.isEmpty) options.map(_._2.get)
     else reportUnresolvedServices(unknownServices)
@@ -48,15 +47,14 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   }
 
   private def reportUnresolvedServices(unknownServices: Array[Class[_]]) = {
-    throw new ServerInitializationException("Unresolved services: " + unknownServices.map(_.getSimpleName).mkString(", "))
+    throw new ServerConfigException("Unresolved services: " + unknownServices.map(_.getSimpleName).mkString(", "))
   }
 
-  private def getService(sClass: Class[_]) = services.getServices.find(_.getClass == sClass)
 
   /**
    * @return Event actors loaded from config as lazy values.
    */
-  def getActorFactories: Array[(=> EventActor)] = actorsProps
+  def getActorFactories: Array[(() => EventActor)] = actorsProps
 }
 
 object EventHandlerProvider {

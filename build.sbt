@@ -1,8 +1,8 @@
 import spray.revolver.AppProcess
 
-name := "MMO Server"
+name := "CIFw"
 
-version := "0.1"
+version := "0.1-SNAPSHOT"
 
 scalaVersion := "2.11.1"
 
@@ -25,6 +25,18 @@ libraryDependencies ++= Seq(
 )
 
 Revolver.settings
+
+publishMavenStyle := true
+
+lazy val publishName = s"$name $version"
+
+publishTo := {
+  val path = Path.userHome.absolutePath + "\\Dropbox\\CIFw"
+  if (version.value.endsWith("SNAPSHOT"))
+    Some(Resolver.file(publishName, new File(path + "\\snapshots")))
+  else
+    Some(Resolver.file(publishName, new File(path + "\\releases")))
+}
 
 cleanupCommands in console :=
   """

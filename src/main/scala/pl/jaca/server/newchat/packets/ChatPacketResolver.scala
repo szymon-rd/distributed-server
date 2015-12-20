@@ -1,6 +1,6 @@
 package pl.jaca.server.newchat.packets
 
-import pl.jaca.server.proxy.server.{UnknownPacket, PacketResolver}
+import pl.jaca.server.networking.PacketResolver
 
 /**
  * @author Jaca777
@@ -8,6 +8,10 @@ import pl.jaca.server.proxy.server.{UnknownPacket, PacketResolver}
  */
 object ChatPacketResolver extends PacketResolver{
   def resolve: Resolve = {
-    case _ => UnknownPacket
+    case 0 => in.Login
+    case 1 => in.Register
+    case 2 => in.JoinChat
+    case 3 => in.JoinChatroom
+    case 4 => in.SendMessage
   }
 }

@@ -1,7 +1,7 @@
 package pl.jaca.server.newchat.userauth
 
-import pl.jaca.server.cluster.distribution.{AbsoluteLoad, Load, Distributable}
-import pl.jaca.server.proxy.eventhandling.EventActor
+import pl.jaca.cluster.distribution.{AbsoluteLoad, Load, Distributable}
+import pl.jaca.server.eventhandling.EventActor
 
 /**
  * @author Jaca777

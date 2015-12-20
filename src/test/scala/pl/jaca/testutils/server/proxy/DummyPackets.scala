@@ -1,7 +1,7 @@
 package pl.jaca.testutils.server.proxy
 
-import pl.jaca.server.proxy.Connection
-import pl.jaca.server.proxy.packets.{InPacket, OutPacket}
+import pl.jaca.server.Connection
+import pl.jaca.server.packets.{InPacket, OutPacket}
 
 /**
  * @author Jaca777
