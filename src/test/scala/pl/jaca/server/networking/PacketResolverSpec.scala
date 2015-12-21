@@ -1,7 +1,5 @@
 package pl.jaca.server.networking
 
-import akka.actor.ActorSystem
-import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.Connection
 import pl.jaca.server.packets.InPacket
@@ -11,7 +9,7 @@ import pl.jaca.testutils.TypeMatchers
  * @author Jaca777
  *         Created 2015-11-27 at 17
  */
-class PacketResolverSpec extends TestKit(ActorSystem("PacketResolverSpec")) with ImplicitSender with WordSpecLike with Matchers with TypeMatchers {
+class PacketResolverSpec extends WordSpecLike with Matchers with TypeMatchers {
 
   case class TestPacketA(i: Short, l: Short, m: Array[Byte], c: Connection) extends InPacket(i, l, m, c)
 

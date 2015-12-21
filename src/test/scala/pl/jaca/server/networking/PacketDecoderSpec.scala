@@ -9,7 +9,7 @@ import io.netty.channel.Channel
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.Connection
 import pl.jaca.server.packets.{InPacket, OutPacket}
-import pl.jaca.testutils.server.proxy.{DummyChannelHandlerContext, DummyNettyChannel}
+import pl.jaca.testutils.server.proxy.{DummyConnection, DummyChannelHandlerContext}
 
 /**
  * @author Jaca777
@@ -44,24 +44,24 @@ class PacketDecoderSpec extends TestKit(ActorSystem("PacketDecoderSpec")) with I
     override def removeConnection(channel: Channel): Unit = throw new UnsupportedOperationException
   }
 
-  class SingleChannelHandlerContext(c: Channel) extends DummyChannelHandlerContext {
-    override def channel(): Channel = c
-  }
 
   class TestOutPacket(id: Short, length: Short, msg: Array[Byte]) extends OutPacket(id, length, msg)
 
+  val dummyContext = new DummyChannelHandlerContext
+  val dummyConnection = new DummyConnection("test")
+
   "PacketDecoder" should {
-    val connection = new Connection(null, 0, new DummyNettyChannel(0, 0), null)
-    val connectionManager = new SingleConnectionManager(connection)
-    val channel = new DummyNettyChannel(0, 0)
-    val ctx = new SingleChannelHandlerContext(channel)
-
     "decode packets 1" in {
-      val id: Short = 1
       val msg: Array[Byte] = Array[Byte](12, 66, 92, 2, -8)
-      val decoder = new PacketDecoder(TestPacketResolver, connectionManager)
-
-      val list = new util.LinkedList[AnyRef]()
+      val packetBuf = createPacket(1, msg)
+      val decoder = new PacketDecoder(TestPacketResolver)
+      val out = new util.ArrayList[AnyRef]()
+      decoder.decode(dummyContext, packetBuf, out)
+      val packetFactory = out.get(0).asInstanceOf[(Connection => InPacket)]
+      val packet = packetFactory(dummyConnection)
+      packet.msg should contain(theSameElementsInOrderAs(msg))
+      packet.id should be (1)
+      packet.sender should be (dummyConnection)
     }
   }
 
@@ -69,6 +69,6 @@ class PacketDecoderSpec extends TestKit(ActorSystem("PacketDecoderSpec")) with I
     val idBytes = Array((id & 0xFF).toByte, (id >> 8 & 0xFF).toByte)
     val length = msg.length + 4
     val lengthBytes = Array((length & 0xFF).toByte, (length >> 8 & 0xFF).toByte)
-    Unpooled.copiedBuffer(idBytes ++ lengthBytes ++ msg)
+    Unpooled.copiedBuffer(lengthBytes ++ idBytes ++ msg)
   }
 }

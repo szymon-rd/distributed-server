@@ -7,12 +7,13 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.ByteToMessageDecoder
 import pl.jaca.server.Connection
+import PacketReader._
 
 /**
  * @author Jaca777
  *         Created 2015-06-13 at 13
  */
-class PacketDecoder(resolver: PacketResolver, connectionManger: ConnectionManager) extends ByteToMessageDecoder {
+class PacketDecoder(resolver: PacketResolver) extends ByteToMessageDecoder {
 
   override def decode(ctx: ChannelHandlerContext, in: ByteBuf, out: util.List[AnyRef]) =
     if (isReadable(in)) readPacket(ctx, in, out)
@@ -31,33 +32,12 @@ class PacketDecoder(resolver: PacketResolver, connectionManger: ConnectionManage
     else throw new UnknownSenderException(s"Sender with address ${getAddress(ctx)} not found.")
   }
 
-  def isComplete(in: ByteBuf, size: Short) = in.readableBytes() >= size
+  def resolveSender(ctx: ChannelHandlerContext): Option[Connection] = {
+    ???
+  }
 
 
   def getAddress(ctx: ChannelHandlerContext): SocketAddress = {
     ctx.channel().remoteAddress()
-  }
-
-  def resolveSender(ctx: ChannelHandlerContext): Option[Connection] = {
-    connectionManger.getConnection(ctx.channel())
-  }
-
-  def readSize(in: ByteBuf) = {
-    in.getShort(2)
-  }
-
-  def readId(in: ByteBuf) = {
-    in.readShort()
-  }
-
-  def readData(in: ByteBuf, size: Short, id: Short): Array[Byte] = {
-    in.skipBytes(2) //Skipping size
-    val bytes = new Array[Byte](size - 4)
-    in.readBytes(bytes)
-    bytes
-  }
-
-  def isReadable(in: ByteBuf) = {
-    in.readableBytes() >= 4
   }
 }

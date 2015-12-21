@@ -5,7 +5,7 @@ import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
 import pl.jaca.server.packets.OutPacket
 import pl.jaca.server.networking.ConnectionProxy
-import ConnectionProxy.ForwardPacket
+import ConnectionProxy._
 
 
 /**
@@ -19,6 +19,14 @@ class Connection(val host: String, val port: Int, channel: Channel, val proxy: A
 
   def write(packet: OutPacket) {
     proxy.tell(ForwardPacket(packet), ActorRef.noSender)
+  }
+
+  def mapSessionState(f: (Option[Any] => Any)) = {
+    proxy.tell(UpdateState(f), ActorRef.noSender)
+  }
+
+  def withSessionState(activity: (Option[Any] => Unit)) = {
+    proxy.tell(WithState(activity), ActorRef.noSender)
   }
 
   override def hashCode(): Int = channel.hashCode()

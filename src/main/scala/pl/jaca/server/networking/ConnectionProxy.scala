@@ -2,8 +2,8 @@ package pl.jaca.server.networking
 
 import akka.actor.Actor
 import io.netty.channel.Channel
+import pl.jaca.server.networking.ConnectionProxy._
 import pl.jaca.server.packets.OutPacket
-import ConnectionProxy.{ForwardPacket, GetChannel, RChannel}
 
 /**
  * @author Jaca777
@@ -11,11 +11,16 @@ import ConnectionProxy.{ForwardPacket, GetChannel, RChannel}
  */
 class ConnectionProxy(val channel: Channel) extends Actor {
 
-  override def receive: Receive = {
-    case ForwardPacket(packet) => channel.writeAndFlush(packet)
-    case GetChannel => sender ! RChannel(channel)
-  }
+  override def receive = stateful(None)
 
+  def stateful(state: Option[Any]): Receive = {
+    case UpdateState(action) =>
+      val newState = action(state)
+      context become stateful(Some(newState))
+    case WithState(action) => action(Some(state))
+    case ForwardPacket(packet) => channel.writeAndFlush(packet)
+    case GetChannel => sender ! ProxyChannel(channel)
+  }
 
 }
 
@@ -24,9 +29,14 @@ object ConnectionProxy {
   //IN
   case class ForwardPacket(outPacket: OutPacket)
 
+  case class UpdateState(f: (Option[Any] => Any))
+
+  case class WithState(activity: (Option[Any] => Unit))
+
+
   object GetChannel
 
   //OUT
-  case class RChannel(channel: Channel)
+  case class ProxyChannel(channel: Channel)
 
 }

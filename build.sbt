@@ -1,5 +1,3 @@
-import spray.revolver.AppProcess
-
 name := "CIFw"
 
 version := "0.1-SNAPSHOT"
@@ -24,14 +22,14 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1"
 )
 
-Revolver.settings
-
 publishMavenStyle := true
+
+crossPaths := false
 
 lazy val publishName = s"$name $version"
 
 publishTo := {
-  val path = Path.userHome.absolutePath + "\\Dropbox\\CIFw"
+  val path = Path.userHome.absolutePath + "Dropbox\\Public\\CIFw"
   if (version.value.endsWith("SNAPSHOT"))
     Some(Resolver.file(publishName, new File(path + "\\snapshots")))
   else
