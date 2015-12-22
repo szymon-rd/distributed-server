@@ -17,7 +17,7 @@ class ConnectionProxy(val channel: Channel) extends Actor {
     case UpdateState(action) =>
       val newState = action(state)
       context become stateful(Some(newState))
-    case WithState(action) => action(Some(state))
+    case WithState(action) => action(state)
     case ForwardPacket(packet) => channel.writeAndFlush(packet)
     case GetChannel => sender ! ProxyChannel(channel)
   }
@@ -31,7 +31,7 @@ object ConnectionProxy {
 
   case class UpdateState(f: (Option[Any] => Any))
 
-  case class WithState(activity: (Option[Any] => Unit))
+  case class WithState(action: (Option[Any] => Unit))
 
 
   object GetChannel

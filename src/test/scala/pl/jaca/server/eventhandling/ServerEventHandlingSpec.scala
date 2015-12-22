@@ -5,7 +5,7 @@ import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.networking.ServerEvent.ConnectionActive
 import pl.jaca.testutils.CollectionMatchers
-import pl.jaca.testutils.server.proxy.DummyConnection
+import pl.jaca.testutils.server.proxy.DummySession
 import pl.jaca.testutils.server.proxy.DummyPackets.DummyInPacket
 
 import scala.concurrent.duration._
@@ -38,7 +38,7 @@ class ServerEventHandlingSpec extends TestKit(ActorSystem("ServerEventHandlingSp
 
   val testEventActor1 = TestActorRef(new TestEventActor1)
   val testEventActor2 = TestActorRef(new TestEventActor2)
-  val dummyConnectionActive = ConnectionActive(new DummyConnection("abc"))
+  val dummyConnectionActive = ConnectionActive(new DummySession("abc"))
   val dummyPacket = new TestPacketA
 
   class TestEventActor2 extends EventActor with ServerEventHandling {

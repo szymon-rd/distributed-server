@@ -2,7 +2,7 @@ package pl.jaca.server.networking
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import pl.jaca.server.Connection
+import pl.jaca.server.{Session, Session$}
 
 /**
  * @author Jaca777
@@ -20,11 +20,11 @@ sealed trait ServerStateEvent extends ServerEvent
 
 object ServerEvent {
 
-  abstract class ConnectionEvent(connection: Connection) extends ServerStateEvent
+  abstract class ConnectionEvent(connection: Session) extends ServerStateEvent
 
-  case class ConnectionActive(con: Connection) extends ConnectionEvent(con)
+  case class ConnectionActive(con: Session) extends ConnectionEvent(con)
 
-  case class ConnectionInactive(con: Connection) extends ConnectionEvent(con)
+  case class ConnectionInactive(con: Session) extends ConnectionEvent(con)
 
   private[server] trait InPacketEvent extends ServerEvent
 

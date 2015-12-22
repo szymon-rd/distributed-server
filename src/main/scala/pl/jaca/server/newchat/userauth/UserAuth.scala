@@ -1,7 +1,7 @@
 package pl.jaca.server.newchat.userauth
 
 import akka.actor.Actor
-import pl.jaca.server.Connection
+import pl.jaca.server.{Session}
 import pl.jaca.server.newchat.model.domain.ChatUser
 
 /**
@@ -16,6 +16,6 @@ class UserAuth extends Actor {
 }
 
 object UserAuth {
-  case class GetUser(connection: Connection)
+  case class GetUser(connection: Session)
   case class User(chatUser: ChatUser)
 }

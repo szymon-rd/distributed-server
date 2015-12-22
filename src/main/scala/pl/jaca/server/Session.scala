@@ -13,7 +13,7 @@ import ConnectionProxy._
  *         Created 2015-06-17 at 20
  */
 @SerialVersionUID(201024001L)
-class Connection(val host: String, val port: Int, channel: Channel, val proxy: ActorRef) extends Serializable {
+class Session(val host: String, val port: Int, channel: Channel, val proxy: ActorRef) extends Serializable {
 
   private val channelID = channel.id()
 
@@ -25,15 +25,15 @@ class Connection(val host: String, val port: Int, channel: Channel, val proxy: A
     proxy.tell(UpdateState(f), ActorRef.noSender)
   }
 
-  def withSessionState(activity: (Option[Any] => Unit)) = {
-    proxy.tell(WithState(activity), ActorRef.noSender)
+  def withSessionState(action: (Option[Any] => Unit)) = {
+    proxy.tell(WithState(action), ActorRef.noSender)
   }
 
   override def hashCode(): Int = channel.hashCode()
 
   override def equals(obj: Any): Boolean =
     obj match {
-      case connection: Connection =>
+      case connection: Session =>
         channelID == connection.channelID
       case _ => false
     }
@@ -41,9 +41,9 @@ class Connection(val host: String, val port: Int, channel: Channel, val proxy: A
   def channelEquals(channel: Channel): Boolean = channelID == channel.id()
 }
 
-object Connection {
+object Session {
 
-  object NoConnection extends Connection(null, -1, new EmbeddedChannel, ActorRef.noSender) {
+  object NoSession extends Session(null, -1, new EmbeddedChannel, ActorRef.noSender) {
     override def write(packet: OutPacket) {
       throw new UnsupportedOperationException
     }
