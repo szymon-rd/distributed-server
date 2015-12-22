@@ -1,27 +1,35 @@
 package pl.jaca.server.networking
 
 import java.io.IOException
+import java.net.InetSocketAddress
 
 import akka.actor.ActorRef
-import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandlerAdapter}
+import io.netty.channel.{Channel, ChannelHandlerContext, ChannelInboundHandlerAdapter}
+import pl.jaca.server.Session
 import pl.jaca.server.packets.InPacket
 
 /**
  * @author Jaca777
  *         Created 2015-06-12 at 16
  */
-class ChannelHandler(connectionManager: ConnectionManager, server: ActorRef) extends ChannelInboundHandlerAdapter {
+class ChannelHandler(proxyFactory: Channel => ActorRef, server: ActorRef) extends ChannelInboundHandlerAdapter {
+
+  private var session: Session = null
 
   override def channelActive(ctx: ChannelHandlerContext) {
-    connectionManager.createConnection(ctx.channel())
+    val channel = ctx.channel()
+    val address = channel.remoteAddress().asInstanceOf[InetSocketAddress]
+    session = new Session(address.getHostString, address.getPort, channel, proxyFactory(channel))
+    server ! Server.EventOccurred(ServerEvent.ConnectionActive(session))
   }
 
   override def channelInactive(ctx: ChannelHandlerContext) {
-    connectionManager.removeConnection(ctx.channel())
+    server ! Server.EventOccurred(ServerEvent.ConnectionInactive(session))
   }
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Object) {
-    val packet = msg.asInstanceOf[InPacket]
+    val partialPacket = msg.asInstanceOf[Session => InPacket]
+    val packet = partialPacket(session)
     server ! Server.EventOccurred(packet)
   }
 

@@ -16,6 +16,8 @@ class DummyNettyChannel(port: Int, nid: Int) extends Channel {
   val address = new InetSocketAddress("dummy", port)
   val nettyId = new DummyNettyChannelId(nid)
 
+  def this() = this(1,1)
+
   override def voidPromise(): ChannelPromise = throw new UnsupportedOperationException
 
   override def eventLoop(): EventLoop = throw new UnsupportedOperationException

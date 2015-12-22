@@ -1,12 +1,12 @@
 package pl.jaca.server.networking
 
-import akka.actor.{ActorLogging, Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.util.Timeout
 import io.netty.bootstrap.ServerBootstrap
+import io.netty.channel.Channel
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import Server._
-import pl.jaca.server.networking.Server.Subscribe
+import pl.jaca.server.networking.Server.{Subscribe, _}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -19,11 +19,11 @@ class Server(val port: Int, val resolver: PacketResolver) extends Actor with Act
 
   val bossGroup = new NioEventLoopGroup
   val workersGroup = new NioEventLoopGroup
-  val connectionManager = new ConnectionManager(c => context.actorOf(Props(new ConnectionProxy(c))), self)
+  val proxyFactor = (c: Channel) => context.actorOf(Props(new ConnectionProxy(c)))
   val bootstrap = new ServerBootstrap()
     .group(bossGroup, workersGroup)
     .channel(classOf[NioServerSocketChannel])
-    .childHandler(new ServerInitializer(resolver, self, connectionManager))
+    .childHandler(new ServerInitializer(resolver, self, proxyFactor))
   val channel = bootstrap.bind(port).sync().channel()
 
   implicit val timeout = Timeout(2.seconds)

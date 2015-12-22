@@ -1,6 +1,6 @@
 package pl.jaca.server.networking
 
-import pl.jaca.server.Connection
+import pl.jaca.server.{Session, Session$}
 import pl.jaca.server.packets.InPacket
 
 
@@ -10,9 +10,9 @@ import pl.jaca.server.packets.InPacket
  */
 abstract class PacketResolver {
 
-  type Resolve = PartialFunction[Short, (Short, Short, Array[Byte], Connection) => InPacket]
+  type Resolve = PartialFunction[Short, (Short, Short, Array[Byte], Session) => InPacket]
 
-  def resolve(id: Short, length: Short, data: Array[Byte], sender: Connection): InPacket = (resolve orElse unknown)(id)(id, length, data, sender)
+  def resolve(id: Short, length: Short, data: Array[Byte], sender: Session): InPacket = (resolve orElse unknown)(id)(id, length, data, sender)
 
   private val unknown: Resolve = {
     case _ => UnknownPacket
@@ -25,4 +25,4 @@ abstract class PacketResolver {
     }
   }
 }
-case class UnknownPacket(i: Short, l: Short, data: Array[Byte], s: Connection) extends InPacket(i,l,data,s)
+case class UnknownPacket(i: Short, l: Short, data: Array[Byte], s: Session) extends InPacket(i,l,data,s)

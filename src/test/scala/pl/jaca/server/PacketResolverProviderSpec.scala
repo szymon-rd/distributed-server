@@ -16,23 +16,22 @@ class PacketResolverProviderSpec extends WordSpecLike with Matchers {
   val wrongConfig1 = ConfigFactory.load("pl/jaca/server/conf2.conf")
   val wrongConfig2 = ConfigFactory.load("pl/jaca/server/conf3.conf")
   val wrongConfig3 = ConfigFactory.load("pl/jaca/server/conf4.conf")
-  val wrongConfig4 = ConfigFactory.load("pl/jaca/server/conf4.conf")
+  val wrongConfig4 = ConfigFactory.load("pl/jaca/server/conf5.conf")
+
+  def provider: PacketResolverProvider = new PacketResolverProvider(properConfig1)
 
   "PacketResolverProvider" must {
     "load resolvers from config" in {
-      val provider = new PacketResolverProvider(properConfig1)
       val resolver = provider.getResolver
       val packet = resolver.resolve(1, 2, null, null)
       packet shouldBe a[TestPacketA]
     }
     "combine given resolvers" in {
-      val provider = new PacketResolverProvider(properConfig1)
       val resolver = provider.getResolver
       val packet = resolver.resolve(3, 2, null, null)
       packet shouldBe a[TestPacketC]
     }
     "keep resolving order" in {
-      val provider = new PacketResolverProvider(properConfig1)
       val resolver = provider.getResolver
       val packet = resolver.resolve(2, 2, null, null)
       packet shouldBe a[TestPacketC]
@@ -55,7 +54,7 @@ class PacketResolverProviderSpec extends WordSpecLike with Matchers {
     "throw exception when class is abstract" in {
       intercept[ServerConfigException] {
         new PacketResolverProvider(wrongConfig4)
-      }.getMessage should be("Resolver pl.jaca.server.PacketResolverProviderSpec$ParametrizedResolver is an abstract class.")
+      }.getMessage should be("Resolver pl.jaca.server.PacketResolverProviderSpec$AbstractResolver is an abstract class.")
     }
   }
 
@@ -63,11 +62,11 @@ class PacketResolverProviderSpec extends WordSpecLike with Matchers {
 
 object PacketResolverProviderSpec {
 
-  case class TestPacketA(i: Short, l: Short, m: Array[Byte], s: Connection) extends InPacket(i, l, m, s)
+  case class TestPacketA(i: Short, l: Short, m: Array[Byte], s: Session) extends InPacket(i, l, m, s)
 
-  case class TestPacketB(i: Short, l: Short, m: Array[Byte], s: Connection) extends InPacket(i, l, m, s)
+  case class TestPacketB(i: Short, l: Short, m: Array[Byte], s: Session) extends InPacket(i, l, m, s)
 
-  case class TestPacketC(i: Short, l: Short, m: Array[Byte], s: Connection) extends InPacket(i, l, m, s)
+  case class TestPacketC(i: Short, l: Short, m: Array[Byte], s: Session) extends InPacket(i, l, m, s)
 
   class ResolverA extends PacketResolver {
     override def resolve: Resolve = {

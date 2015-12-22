@@ -22,6 +22,12 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1"
 )
 
+lazy val lol = taskKey[Unit]("Prints 'Hello World'")
+
+lol := {
+
+}
+
 publishMavenStyle := true
 
 crossPaths := false

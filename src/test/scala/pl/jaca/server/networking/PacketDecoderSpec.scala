@@ -4,12 +4,11 @@ import java.util
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.channel.Channel
 import org.scalatest.{Matchers, WordSpecLike}
-import pl.jaca.server.Connection
+import pl.jaca.server.Session
 import pl.jaca.server.packets.{InPacket, OutPacket}
-import pl.jaca.testutils.server.proxy.{DummyConnection, DummyChannelHandlerContext}
+import pl.jaca.testutils.server.proxy.{DummyChannelHandlerContext, DummySession}
+import pl.jaca.testutils.server.proxy.DummyPackets._
 
 /**
  * @author Jaca777
@@ -17,11 +16,11 @@ import pl.jaca.testutils.server.proxy.{DummyConnection, DummyChannelHandlerConte
  */
 class PacketDecoderSpec extends TestKit(ActorSystem("PacketDecoderSpec")) with ImplicitSender with WordSpecLike with Matchers {
 
-  case class TestPacketA(i: Short, l: Short, m: Array[Byte], s: Connection) extends InPacket(i, l, m, s)
+  case class TestPacketA(i: Short, l: Short, m: Array[Byte], s: Session) extends InPacket(i, l, m, s)
 
-  case class TestPacketB(i: Short, l: Short, m: Array[Byte], s: Connection) extends InPacket(i, l, m, s)
+  case class TestPacketB(i: Short, l: Short, m: Array[Byte], s: Session) extends InPacket(i, l, m, s)
 
-  case class TestPacketC(i: Short, l: Short, m: Array[Byte], s: Connection) extends InPacket(i, l, m, s)
+  case class TestPacketC(i: Short, l: Short, m: Array[Byte], s: Session) extends InPacket(i, l, m, s)
 
   object TestPacketResolver extends PacketResolver {
     override def resolve: Resolve = {
@@ -32,23 +31,10 @@ class PacketDecoderSpec extends TestKit(ActorSystem("PacketDecoderSpec")) with I
 
   }
 
-  class SingleConnectionManager(connection: Connection) extends ConnectionManager(null, null) {
-    override def getConnection(channel: Channel): Option[Connection] = Some(connection)
-
-    override def getConnections(f: (Connection) => Boolean): Set[Connection] = super.getConnections(f)
-
-    override def getAllConnections: Set[Connection] = Set(connection)
-
-    override def createConnection(channel: Channel): Unit = throw new UnsupportedOperationException
-
-    override def removeConnection(channel: Channel): Unit = throw new UnsupportedOperationException
-  }
-
-
   class TestOutPacket(id: Short, length: Short, msg: Array[Byte]) extends OutPacket(id, length, msg)
 
   val dummyContext = new DummyChannelHandlerContext
-  val dummyConnection = new DummyConnection("test")
+  val dummyConnection = new DummySession("test")
 
   "PacketDecoder" should {
     "decode packets 1" in {
@@ -56,19 +42,16 @@ class PacketDecoderSpec extends TestKit(ActorSystem("PacketDecoderSpec")) with I
       val packetBuf = createPacket(1, msg)
       val decoder = new PacketDecoder(TestPacketResolver)
       val out = new util.ArrayList[AnyRef]()
+
       decoder.decode(dummyContext, packetBuf, out)
-      val packetFactory = out.get(0).asInstanceOf[(Connection => InPacket)]
+      val packetFactory = out.get(0).asInstanceOf[(Session => InPacket)]
       val packet = packetFactory(dummyConnection)
-      packet.msg should contain(theSameElementsInOrderAs(msg))
+
+      packet.msg should be(msg)
       packet.id should be (1)
       packet.sender should be (dummyConnection)
+      packetBuf.release()
+      ()
     }
-  }
-
-  def createPacket(id: Short, msg: Array[Byte]): ByteBuf = {
-    val idBytes = Array((id & 0xFF).toByte, (id >> 8 & 0xFF).toByte)
-    val length = msg.length + 4
-    val lengthBytes = Array((length & 0xFF).toByte, (length >> 8 & 0xFF).toByte)
-    Unpooled.copiedBuffer(lengthBytes ++ idBytes ++ msg)
   }
 }
