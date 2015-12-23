@@ -25,7 +25,6 @@ class ReceptionistSpec extends TestKit(ActorSystem("ReceptionistSpec")) with Imp
 
   "Receptionist actor" must {
 
-
     "collect available members" in {
       val receptionist = TestActorRef(new Receptionist(PreciseSelectionStrategy))
       val member1 = createClusterMember(new Address("a", "a1"))

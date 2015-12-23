@@ -8,9 +8,7 @@ import pl.jaca.cluster.{Application, Configurable}
  *         Created 2015-10-02 at 22
  */
 class Launcher extends Actor with Configurable {
-  implicit val configPath = "server-cluster"
-
-  val appPath = systemConfig.stringAt("application").get
+  val appPath = systemConfig.stringAt("server-cluster.application").get
   val appClass: Class[Application] = Class.forName(appPath).asInstanceOf[Class[Application]]
   context.actorOf(Props(new Initializer(() => appClass.newInstance())), "clusterInitializer")
 

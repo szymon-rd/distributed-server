@@ -5,6 +5,7 @@ import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.PacketResolverProviderSpec._
 import pl.jaca.server.packets.InPacket
 import pl.jaca.server.networking.PacketResolver
+import pl.jaca.server.providers.PacketResolverProvider
 
 /**
  * @author Jaca777
@@ -39,7 +40,7 @@ class PacketResolverProviderSpec extends WordSpecLike with Matchers {
     "throw exception when class in not type of resolver" in {
       intercept[ServerConfigException] {
         new PacketResolverProvider(wrongConfig1)
-      }.getMessage should be ("Resolver pl.jaca.server.PacketResolverProviderSpec$SomeClass is not type of PacketResolver.")
+      }.getMessage should be ("pl.jaca.server.PacketResolverProviderSpec$SomeClass is not type of PacketResolver.")
     }
     "throw exception when class is not found" in {
       intercept[ServerConfigException] {

@@ -9,17 +9,16 @@ import com.typesafe.config.{ConfigFactory, Config}
  */
 trait Configurable extends Actor {
   val systemConfig = context.system.settings.config
-  val appConfig = ConfigFactory.load(System.getenv("-Dapp.config"))
+  val appConfig = ConfigFactory.load(System.getProperty("app.config"))
+
 
   implicit class Configuration(config: Config) {
     def stringAt(value: String): Option[String] = {
-      val absolutePath = s"$value"
-      if (config.hasPath(absolutePath)) Some(config.getString(absolutePath)) else None
+      if (config.hasPath(value)) Some(config.getString(value)) else None
     }
 
     def intAt(value: String): Option[Int] = {
-      val absolutePath = s"$value"
-      if (config.hasPath(absolutePath)) Some(config.getInt(absolutePath)) else None
+      if (config.hasPath(value)) Some(config.getInt(value)) else None
     }
 
     def stringsAt(value: String): Option[Array[String]] = ???

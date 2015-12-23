@@ -25,26 +25,34 @@ trait Distribution {
 
     /**
      * Creates new actor, that can be possibly running on another cluster member. Children-parent hierarchy is not modified - created actor is a child of the distributing actor.
-     * @param creator Lazy value containing actor object.
+     * @param p Props of actor object.
      * @tparam T Type of actor.
      * @return Future binded to distributed actor reference.
      */
 
-    private def distributeProps[T <: Distributable with Actor : ClassTag](creator: => T): Future[Props] = {
+    private def distributeProps[T <: Distributable with Actor : ClassTag](p: Props): Future[Props] = {
       val availableWorker = (receptionist ? GetAvailableWorker).mapTo[AvailableWorker] map (_.worker)
       availableWorker.foreach(_.load.increase(AbsoluteLoad(1.0f))) //TODO get load
-      val props = availableWorker map (member => Props(creator).withDeploy(Deploy(scope = RemoteScope(member.clusterMember.address))))
+      val props = availableWorker map (member => p.withDeploy(Deploy(scope = RemoteScope(member.clusterMember.address))))
       props
     }
 
     //Explained: http://docs.scala-lang.org/sips/completed/scala-2-8-arrays.html
     def distribute[T <: Distributable with Actor : ClassTag](creator: => T, name: String): Future[ActorRef] = {
-      val distributedProps = distributeProps(creator)
-      distributedProps.map(props => context.actorOf(props, name))
+      distribute(Props(creator), name)
     }
 
     def distribute[T <: Distributable with Actor : ClassTag](creator: => T): Future[ActorRef] = {
-      val distributedProps = distributeProps(creator)
+      distribute(Props(creator))
+    }
+
+    def distribute[T <: Distributable with Actor : ClassTag](props: Props): Future[ActorRef] = {
+      val distributedProps = distributeProps(props)
+      distributedProps.map(context.actorOf)
+    }
+
+    def distribute[T <: Distributable with Actor : ClassTag](props: Props, name: String): Future[ActorRef] = {
+      val distributedProps = distributeProps(props)
       distributedProps.map(context.actorOf)
     }
   }

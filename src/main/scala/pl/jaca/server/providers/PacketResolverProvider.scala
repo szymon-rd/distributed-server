@@ -1,10 +1,11 @@
-package pl.jaca.server
+package pl.jaca.server.providers
 
 import java.lang.reflect.Modifier
 
 import com.typesafe.config.Config
-import pl.jaca.server.PacketResolverProvider.resolversPath
+import pl.jaca.server.ServerConfigException
 import pl.jaca.server.networking.PacketResolver
+import pl.jaca.server.providers.PacketResolverProvider._
 
 
 /**
@@ -14,6 +15,7 @@ import pl.jaca.server.networking.PacketResolver
 private[server] class PacketResolverProvider(config: Config) {
   private val resolversEntry = config.getStringList(resolversPath).toArray.map(_.asInstanceOf[String])
   private val resolvers = resolversEntry.map(createResolver)
+
 
   def createResolver(className: String) = {
     val clazz: Class[_] = getResolverClass(className)
@@ -25,7 +27,7 @@ private[server] class PacketResolverProvider(config: Config) {
       val classLoader = this.getClass.getClassLoader
       val clazz = classLoader.loadClass(className)
       if (!classOf[PacketResolver].isAssignableFrom(clazz)) //(checking order makes difference)
-        throw new ServerConfigException("Resolver " + className + " is not type of PacketResolver.")
+        throw new ServerConfigException(className + " is not type of PacketResolver.")
       if (Modifier.isAbstract(clazz.getModifiers))
         throw new ServerConfigException("Resolver " + className + " is an abstract class.")
       if (!clazz.getConstructors.exists(_.getParameterCount == 0))

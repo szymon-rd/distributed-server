@@ -6,7 +6,7 @@ import pl.jaca.server.networking.PacketResolver
  * @author Jaca777
  *         Created 2015-06-13 at 15
  */
-object ChatPacketResolver extends PacketResolver{
+class ChatPacketResolver extends PacketResolver{
   def resolve: Resolve = {
     case 0 => in.Login
     case 1 => in.Register

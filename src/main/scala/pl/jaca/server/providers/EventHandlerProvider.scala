@@ -1,12 +1,12 @@
-package pl.jaca.server
-
+package pl.jaca.server.providers
 
 import java.lang.reflect.Constructor
 
 import com.typesafe.config.Config
-import pl.jaca.server.EventHandlerProvider._
 import pl.jaca.server.eventhandling.EventActor
+import pl.jaca.server.providers.EventHandlerProvider._
 import pl.jaca.server.service.Service
+import pl.jaca.server.ServerConfigException
 
 /**
  * @author Jaca777

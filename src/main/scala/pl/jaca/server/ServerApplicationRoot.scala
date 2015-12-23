@@ -6,6 +6,7 @@ import pl.jaca.cluster.distribution.Distribution
 import pl.jaca.cluster.{Application, Configurable, SystemNode}
 import pl.jaca.server.ServerApplicationRoot.Shutdown
 import pl.jaca.server.networking.Server
+import pl.jaca.server.providers.{ServiceProvider, PacketResolverProvider, EventHandlerProvider}
 
 /**
  * @author Jaca777
@@ -14,19 +15,19 @@ import pl.jaca.server.networking.Server
  *    
  */
 class ServerApplicationRoot extends Application with Distribution with Configurable{
-  implicit val serverAppPath = "server-app"
 
+  implicit val executor = context.dispatcher
 
-  val resolverProvider = new PacketResolverProvider(systemConfig)
-  val serviceProvider = new ServiceProvider(systemConfig)
-  val handlerProvider = new EventHandlerProvider(systemConfig, serviceProvider)
+  val resolverProvider = new PacketResolverProvider(appConfig)
+  val serviceProvider = new ServiceProvider(appConfig, createService)
+  val handlerProvider = new EventHandlerProvider(appConfig, serviceProvider)
   
   /**
    * Awaiting command to launch.
    */
   override def receive: Receive = {
     case Launch =>
-      val server = launch()
+      val server = launchServer()
       context become running(server)
   }
   
@@ -39,7 +40,7 @@ class ServerApplicationRoot extends Application with Distribution with Configura
   /**
    * Launches both server and client application.
    */
-  def launch() = {
+  def launchServer() = {
     val port = getPort
     val resolver = resolverProvider.getResolver
     val handlers = handlerProvider.getActorFactories
@@ -49,8 +50,9 @@ class ServerApplicationRoot extends Application with Distribution with Configura
 
 
   def getPort: Int =
-    systemConfig.intAt("port").getOrElse(ServerApplicationRoot.defaultPort)
-  
+    systemConfig.intAt("server-app.port").getOrElse(ServerApplicationRoot.defaultPort)
+
+  def createService(p: Props) = context.distribute(p)
 
 }
 
