@@ -20,11 +20,11 @@ sealed trait ServerStateEvent extends ServerEvent
 
 object ServerEvent {
 
-  abstract class ConnectionEvent(connection: Session) extends ServerStateEvent
+  abstract class SessionEvent(session: Session) extends ServerStateEvent
 
-  case class ConnectionActive(con: Session) extends ConnectionEvent(con)
+  case class SessionActive(s: Session) extends SessionEvent(s)
 
-  case class ConnectionInactive(con: Session) extends ConnectionEvent(con)
+  case class SessionInactive(s: Session) extends SessionEvent(s)
 
   private[server] trait InPacketEvent extends ServerEvent
 

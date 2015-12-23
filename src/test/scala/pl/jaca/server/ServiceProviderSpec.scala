@@ -53,15 +53,15 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
       new ServiceProvider(wrongConfig2, createTestActor)
       }.getMessage should be("Service pl.jaca.server.ServiceProviderSpec$AbstractService is an abstract class.")
     }
-    "throw exception when class constructor has not injectable arg." in {
+    "throw exception when class constructor has not injectable params." in {
       intercept[ServerConfigException] {
       new ServiceProvider(wrongConfig3, createTestActor)
-      }.getMessage should be("Service pl.jaca.server.ServiceProviderSpec$NonInjectableService constructor has not injectable parameter.")
+      }.getMessage should be("Service pl.jaca.server.ServiceProviderSpec$NonInjectableService constructor has not injectable parameters.")
     }
     "detect cyclic dependencies" in {
       intercept[ServerConfigException] {
       new ServiceProvider(wrongConfig4, createTestActor)
-      }.getMessage should be("Cyclic services dependency found: cyclicA -> cyclicB -> cyclicC -> cyclicA")
+      }.getMessage should be("Cyclic dependency found: cyclicA -> cyclicB -> cyclicC -> cyclicA")
     }
   }
 

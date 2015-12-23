@@ -20,11 +20,11 @@ class ChannelHandler(proxyFactory: Channel => ActorRef, server: ActorRef) extend
     val channel = ctx.channel()
     val address = channel.remoteAddress().asInstanceOf[InetSocketAddress]
     session = new Session(address.getHostString, address.getPort, channel, proxyFactory(channel))
-    server ! Server.EventOccurred(ServerEvent.ConnectionActive(session))
+    server ! Server.EventOccurred(ServerEvent.SessionActive(session))
   }
 
   override def channelInactive(ctx: ChannelHandlerContext) {
-    server ! Server.EventOccurred(ServerEvent.ConnectionInactive(session))
+    server ! Server.EventOccurred(ServerEvent.SessionInactive(session))
   }
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Object) {

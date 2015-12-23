@@ -113,7 +113,7 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
     val constructors = clazz.getConstructors
     val constructor = constructors.find(isInjectable)
     if (constructor.isEmpty)
-      throw new ServerConfigException(s"Service ${clazz.getName} constructor has not injectable parameter.")
+      throw new ServerConfigException(s"Service ${clazz.getName} constructor has not injectable parameters.")
     else constructor.get.asInstanceOf[Constructor[Service]]
   }
 

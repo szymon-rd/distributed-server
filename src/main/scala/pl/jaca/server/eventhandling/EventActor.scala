@@ -1,9 +1,9 @@
 package pl.jaca.server.eventhandling
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.actor.{Actor, ActorLogging}
 import pl.jaca.server.networking.Event
-
-import scala.concurrent.Future
+import pl.jaca.server.networking.ServerEvent.SessionEvent
+import pl.jaca.server.packets.InPacket
 
 
 /**
@@ -13,28 +13,28 @@ import scala.concurrent.Future
 abstract class EventActor extends Actor with ActorLogging {
   implicit val executionContext = context.dispatcher
 
-  type EventHandler = PartialFunction[Event, (Event => Action)]
-  type ActionExpr = Event => Action
+  type EventHandler = PartialFunction[Event, Unit]
 
   def receive: Receive = reacting(PartialFunction.empty)
 
 
   def reacting(handler: EventHandler): Receive = {
-    case e: Event =>
+    case e: Event if handler.isDefinedAt(e) =>
       e.getAndHandle()
-      handler(e)(e).perform()
-    case a: Action =>
-      a.perform()
+      handler(e)
+    case AddHandler(h: EventHandler) =>
+      context.become(reacting(h orElse handler))
   }
 
-  val unhandled: EventHandler = {
-    case e => Ignore
-  }
+  private case class AddHandler(handler: EventHandler)
 
   private[eventhandling] class AsyncEventStream {
 
-    def react(handler: EventHandler) = context become reacting(handler orElse unhandled)
+    def react(handler: EventHandler) = self ! AddHandler(handler)
 
+    def packets = PacketAsyncStream
+
+    def sessionEvents = SessionEventAsyncStream
   }
 
   object AsyncEventStream {
@@ -43,39 +43,28 @@ abstract class EventActor extends Actor with ActorLogging {
     }
   }
 
-  class Action(action: => Unit) {
-    def perform() = action
+  type PacketHandler = PartialFunction[InPacket, Unit]
+
+  private[eventhandling] object PacketAsyncStream {
+    def react(handler: PacketHandler) = self ! AddHandler({
+      case i: InPacket => handler(i)
+    })
   }
 
-  object Action {
-    def apply(action: => Unit): ActionExpr = _ => new Action(action)
+  type SessionEventHandler = PartialFunction[SessionEvent, Unit]
+  
+  private[eventhandling] object SessionEventAsyncStream {
+    def react(handler: SessionEventHandler) = self ! AddHandler({
+      case c: SessionEvent => handler(c)
+    })
   }
 
 
-  object FutureAction {
-    def apply(action: => Future[Unit]): ActionExpr = Action {
-      action.onSuccess({case _ => self ! _})
-    }
-  }
+}
 
-  object Route {
-    def apply(actorRef: ActorRef): ActionExpr = event => new Action {
-      actorRef ! event
-    }
-  }
+object EventActor {
 
-  object Ignore extends ActionExpr {
-    override def apply(v1: Event): Action = new Action{}
-  }
-
-  implicit class ActionExprImplicit(actionExpr: ActionExpr){
-    def and(actionExpr: ActionExpr): ActionExpr = {
-      event => new Action({
-        this.actionExpr(event).perform()
-        actionExpr(event).perform()
-      })
-    }
-  }
+  case class EventHandled(event: Event)
 
 }
 

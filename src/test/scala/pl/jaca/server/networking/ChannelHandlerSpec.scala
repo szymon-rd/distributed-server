@@ -6,7 +6,7 @@ import io.netty.channel.Channel
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.Session
 import pl.jaca.server.networking.Server.EventOccurred
-import pl.jaca.server.networking.ServerEvent.{ConnectionInactive, ConnectionActive}
+import pl.jaca.server.networking.ServerEvent.{SessionInactive, SessionActive}
 import pl.jaca.server.packets.InPacket
 import pl.jaca.testutils.server.proxy.{DummyChannelHandlerContext, DummyNettyChannel}
 
@@ -35,9 +35,9 @@ class ChannelHandlerSpec extends TestKit(ActorSystem("ChannelHandlerSpec")) with
       channelHandler.channelActive(DummyContext)
 
       val msg = serverProbe.expectMsgType[EventOccurred](200 millis)
-      msg.event shouldBe a[ConnectionActive]
-      val event = msg.event.asInstanceOf[ConnectionActive]
-      event.con.port should be(123)
+      msg.event shouldBe a[SessionActive]
+      val event = msg.event.asInstanceOf[SessionActive]
+      event.s.port should be(123)
       ()
     }
     "inform about connection removal" in {
@@ -49,9 +49,9 @@ class ChannelHandlerSpec extends TestKit(ActorSystem("ChannelHandlerSpec")) with
       channelHandler.channelInactive(DummyContext)
 
       val msg = serverProbe.expectMsgType[EventOccurred](200 millis)
-      msg.event shouldBe a[ConnectionInactive]
-      val event = msg.event.asInstanceOf[ConnectionInactive]
-      event.con.port should be(123)
+      msg.event shouldBe a[SessionInactive]
+      val event = msg.event.asInstanceOf[SessionInactive]
+      event.s.port should be(123)
       ()
     }
     "create packets and forward them to server" in {

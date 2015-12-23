@@ -5,9 +5,11 @@ import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.networking.Event
+import pl.jaca.server.networking.ServerEvent.SessionEvent
+import pl.jaca.server.packets.InPacket
 import pl.jaca.testutils.CollectionMatchers
+import pl.jaca.testutils.server.proxy.DummyPackets.DummyInPacket
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -20,11 +22,15 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
 
   case class TestEvent1(i: Int) extends Event
 
-  case class TestEvent2(s: String) extends Event
+  case class TestEvent2(i: Int) extends Event
 
-  case class TestEvent3(b: Boolean) extends Event
+  case class TestEvent3(i: Int) extends Event
 
   case class TestEvent4() extends Event
+
+  case class PacketEvent(i: Short) extends DummyInPacket(i)
+
+  case class DummyServerEvent() extends SessionEvent(null)
 
   var messages: Set[String] = Set()
 
@@ -33,85 +39,73 @@ class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with Implici
   }
 
   val testActor1 = TestActorRef(new TestEventActor)
-  val testActor2 = TestActorRef(new TestEventActor2)
-  val futureTestActor = TestActorRef(new FutureTestEventActor)
 
   class TestEventActor extends EventActor {
     val stream = AsyncEventStream()
 
     stream react {
-      case TestEvent1(i) =>
-        Action {
-          foo(i)
-        }
-      case TestEvent2(s) => Route(testActor2)
-      case TestEvent3(b) => Ignore
+      case TestEvent1(i) => foo(i)
+      case TestEvent2(i) => foo(i)
+      case TestEvent3(i) => foo(i)
+      case p: PacketEvent => foo(-1)
+      case _: DummyServerEvent => foo(3)
     }
 
-    def foo(i: Int) = out(s"Actor1 $i")
+    stream.packets react {
+      case p: PacketEvent => bar(p)
+    }
 
-  }
-
-  class TestEventActor2 extends EventActor {
-    val stream = AsyncEventStream()
+    stream.sessionEvents react {
+      case DummyServerEvent() => foo(3)
+    }
 
     stream react {
-      case TestEvent2(s) => Action {
-        bar(s)
-      }
-      case TestEvent3(b) => Action {
-        bar(b.toString)
-      }
+      case TestEvent3(i) => foo(i + 3)
     }
 
-    def bar(s: String) = out(s"Actor2 $s")
+    def foo(i: Int) = out(i.toString)
+
+    def bar(p: InPacket) = out(p.id.toString)
+
   }
-
-  class FutureTestEventActor extends EventActor {
-    val stream = AsyncEventStream()
-
-    stream react {
-      case TestEvent3(b) => FutureAction {
-        Future(qux(b))
-      }
-    }
-
-    def qux(b: Boolean) = out(s"Actor3 $b")
-  }
-
 
   "EventActor" must {
-    "handle events" in {
+    "handle event" in {
       messages = Set.empty
-      testActor1 ! TestEvent1(1)
-      testActor1 ! TestEvent1(2)
-      testActor1 ! TestEvent1(3)
-      messages should be(Set("Actor1 1", "Actor1 2", "Actor1 3"))
-    }
-
-    "handle events with futures" in {
-      messages = Set.empty
-      futureTestActor ! TestEvent3(true)
-      within(50 millis) {
-        messages should be(Set("Actor3 true"))
+      val testEvent = TestEvent1(1)
+      testActor1 ! testEvent
+      messages should be(Set("1"))
+      within(100 millis) {
+        testEvent.getAndHandle() should be(true)
       }
     }
 
-    "route events" in {
+    "handle packets" in {
       messages = Set.empty
-      testActor1 ! TestEvent2("a")
-      testActor1 ! TestEvent1(9)
-      testActor1 ! TestEvent2("b")
-      messages should be(Set("Actor1 9", "Actor2 a", "Actor2 b"))
+      testActor1 ! PacketEvent(1)
+      testActor1 ! PacketEvent(2)
+      testActor1 ! PacketEvent(3)
+      messages should be(Set("1", "2", "3"))
     }
 
-    "ignore events" in {
+    "handle session events" in {
       messages = Set.empty
-      testActor1 ! TestEvent1(3)
-      testActor1 ! TestEvent3(true)
-      testActor1 ! TestEvent2("b")
-      testActor1 ! TestEvent3(false)
-      messages should be(Set("Actor1 3", "Actor2 b"))
+      testActor1 ! PacketEvent(1)
+      testActor1 ! PacketEvent(2)
+      testActor1 ! PacketEvent(3)
+      messages should be(Set("1", "2", "3"))
+    }
+
+    "filter events" in {
+      messages = Set.empty
+      testActor1 ! TestEvent2(1)
+      messages should be(Set("1"))
+    }
+
+    "override event handlers" in {
+      messages = Set.empty
+      testActor1 ! TestEvent3(1)
+      messages should be(Set("4"))
     }
 
     "do not throw exception on unhandled event" in {
