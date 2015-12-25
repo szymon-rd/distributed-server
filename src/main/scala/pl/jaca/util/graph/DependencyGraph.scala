@@ -16,6 +16,11 @@ class DependencyGraph[T](val rootNodes: Node[T]*) {
     else addEdge(fromNode.get, toNode.get)
   }
 
+  def add(e: T): DependencyGraph[T] = {
+    val roots = rootNodes :+ new Node[T](e)
+    new DependencyGraph[T](roots: _*)
+  }
+
   private def addEdge(from: T, to: Node[T]): DependencyGraph[T] = {
     val newNode = new Node(from, to)
     val roots = rootNodes :+ newNode

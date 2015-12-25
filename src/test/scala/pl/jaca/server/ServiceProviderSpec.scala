@@ -1,6 +1,6 @@
 package pl.jaca.server
 
-import akka.actor.{ActorRef, ActorSystem, Props, Actor}
+import akka.actor._
 import akka.testkit.{TestKit, TestActorRef}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
@@ -42,6 +42,11 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
       optionF.isDefined should be(true)
       val serviceF = Await.result(optionF.get, 200 millis).asInstanceOf[TestActorRef[Service]].underlyingActor
       serviceF shouldBe a[ServiceG]
+
+      val optionUnc = serviceProvider.getService("uncB")
+      optionUnc.isDefined should be(true)
+      val uncB = Await.result(optionUnc.get, 200 millis).asInstanceOf[TestActorRef[Service]].underlyingActor
+      uncB shouldBe a[UnconnectedServiceB]
     }
     "throw exception when class is not type of service" in {
       intercept[ServerConfigException] {
@@ -61,7 +66,7 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
     "detect cyclic dependencies" in {
       intercept[ServerConfigException] {
       new ServiceProvider(wrongConfig4, createTestActor)
-      }.getMessage should be("Cyclic dependency found: cyclicA -> cyclicB -> cyclicC -> cyclicA")
+      }.getMessage should be("Cyclic dependency found: cyclicC -> cyclicA -> cyclicB -> cyclicC")
     }
   }
 
@@ -139,5 +144,18 @@ object ServiceProviderSpec {
       case _ =>
     }
   }
+
+  class UnconnectedServiceA extends Service {
+    override def receive: Actor.Receive = {
+      case _ =>
+    }
+  }
+
+  class UnconnectedServiceB extends Service {
+    override def receive: Actor.Receive = {
+      case _ =>
+    }
+  }
+
 
 }

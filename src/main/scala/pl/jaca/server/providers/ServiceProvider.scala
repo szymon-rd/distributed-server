@@ -9,7 +9,7 @@ import pl.jaca.server.providers.ServiceProvider._
 import pl.jaca.server.service.Service
 import pl.jaca.server.{DI, ServerConfigException}
 import pl.jaca.util.futures.FutureConversions
-import pl.jaca.util.graph.{GraphException, DependencyGraph}
+import pl.jaca.util.graph.{DependencyGraph, GraphException}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -63,8 +63,9 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
    */
   private val services: Map[String, Future[ActorRef]] = {
     val elements = (for {
-      name <- serviceClasses.keys
-      clazz <- serviceClasses.values
+      elem <- serviceClasses
+      clazz = elem._2
+      name = elem._1
       constructor = getConstructor(clazz)
     } yield GraphElem(name, constructor)).toSeq
     val graph = createGraph(elements)
@@ -87,9 +88,14 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
       diConstr = findConstructor(constructors, diName)
     } yield (GraphElem(name, constr), GraphElem(diName, diConstr))
     try {
-      connections.foldLeft(z = new DependencyGraph[GraphElem]()) {
+      val connectionsGraph = connections.foldLeft(z = new DependencyGraph[GraphElem]()) {
         (graph, conn) => graph.addEdge(conn._1, conn._2)
       }
+      val unconnected = elems.filter(_.constr.getParameterCount == 0)
+      val fullGraph = unconnected.foldLeft(connectionsGraph) {
+        (graph, elem) => graph.add(elem)
+      }
+      fullGraph
     } catch {
       case g: GraphException => throw new ServerConfigException(g.getMessage)
     }

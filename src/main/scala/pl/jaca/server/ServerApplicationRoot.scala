@@ -57,7 +57,9 @@ class ServerApplicationRoot extends Application with Distribution with Configura
   def getPort: Int =
     systemConfig.intAt("server-app.port").getOrElse(ServerApplicationRoot.defaultPort)
 
-  def createService(p: Props) = context.distribute(p)
+  def createService(p: Props) = {
+    context.distribute(p)
+  }
 
   def createHandler(p: Props) = context.distribute(p)
 

@@ -7,5 +7,5 @@ import akka.actor.Actor
  *         Created 2015-10-04 at 18
  */
 trait Distributable extends Actor {
-  def getLoad: Load
+  def getLoad: Load = AbsoluteLoad(1.0f) //TODO Remove it, find other way
 }
