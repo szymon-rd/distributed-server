@@ -19,7 +19,8 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.12",
   "org.testng" % "testng" % "6.9.6",
   "org.scala-lang.modules" % "scala-xml_2.11" % "1.0.5",
-  "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1"
+  "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1",
+  "com.google.guava" % "guava" % "18.0"
 )
 
 publishMavenStyle := true
