@@ -1,9 +1,9 @@
-package pl.jaca.server.newchat.handlers
+package example.newchat.handlers
 
 import akka.actor.ActorRef
 import pl.jaca.server.DI
 import pl.jaca.server.eventhandling.{EventActor, ServerEventHandling}
-import pl.jaca.server.newchat.packets.in.Login
+import example.newchat.packets.in.Login
 
 
 
@@ -13,7 +13,7 @@ import pl.jaca.server.newchat.packets.in.Login
  */
 
 
-class AuthorizationPacketHandler(@DI(serviceName = "authorizationService") authorization: ActorRef) extends EventActor with ServerEventHandling {
+class AuthorizationPacketHandler(@DI(serviceName = "authorization") authorization: ActorRef) extends EventActor with ServerEventHandling {
   val eventStream = AsyncEventStream()
 
   eventStream.packets react {

@@ -1,4 +1,4 @@
-package pl.jaca.server.newchat.handlers
+package example.newchat.handlers
 
 import pl.jaca.server.eventhandling.EventActor
 

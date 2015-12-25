@@ -1,4 +1,4 @@
-package pl.jaca.server.newchat.packets
+package example.newchat.packets
 
 import pl.jaca.server.networking.PacketResolver
 

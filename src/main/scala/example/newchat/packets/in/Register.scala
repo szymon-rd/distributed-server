@@ -1,4 +1,4 @@
-package pl.jaca.server.newchat.packets.in
+package example.newchat.packets.in
 
 import pl.jaca.server.Session
 import pl.jaca.server.packets.InPacket

@@ -1,5 +1,6 @@
-package pl.jaca.server.newchat.model.service
+package example.newchat.model.service
 
+import pl.jaca.cluster.distribution.{AbsoluteLoad, Load}
 import pl.jaca.server.service.Service
 
 /**
@@ -8,4 +9,6 @@ import pl.jaca.server.service.Service
  */
 class Authorization extends Service {
   override def receive: Receive = ???
+
+  override def getLoad: Load = AbsoluteLoad(2.0f)
 }
