@@ -10,8 +10,7 @@ class ChatPacketResolver extends PacketResolver{
   def resolve: Resolve = {
     case 0 => in.Login
     case 1 => in.Register
-    case 2 => in.JoinChat
-    case 3 => in.JoinChatroom
-    case 4 => in.SendMessage
+    case 2 => in.JoinChatroom
+    case 3 => in.SendMessage
   }
 }

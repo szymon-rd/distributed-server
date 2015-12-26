@@ -66,7 +66,7 @@ class ServerApplicationRoot extends Application with Distribution with Configura
 }
 
 object ServerApplicationRoot {
-  val defaultPort = 81154
+  val defaultPort = 41154
 
   //IN
   object Shutdown

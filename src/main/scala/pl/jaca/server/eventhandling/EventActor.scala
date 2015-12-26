@@ -23,7 +23,11 @@ abstract class EventActor extends Actor with ActorLogging {
       e.getAndHandle()
       handler(e)
     case AddHandler(h: EventHandler) =>
-      context.become(reacting(h orElse handler))
+      context.become(reacting(h orElse handler orElse unhandled))
+  }
+
+  val unhandled: EventHandler = {
+    case _ => //do nothing
   }
 
   private case class AddHandler(handler: EventHandler)
@@ -46,17 +50,17 @@ abstract class EventActor extends Actor with ActorLogging {
   type PacketHandler = PartialFunction[InPacket, Unit]
 
   private[eventhandling] object PacketAsyncStream {
-    def react(handler: PacketHandler) = self ! AddHandler({
-      case i: InPacket => handler(i)
-    })
+    def react(handler: PacketHandler) = self ! AddHandler {
+      case i: InPacket => (handler orElse unhandled)(i)
+    }
   }
 
   type SessionEventHandler = PartialFunction[SessionEvent, Unit]
   
   private[eventhandling] object SessionEventAsyncStream {
-    def react(handler: SessionEventHandler) = self ! AddHandler({
-      case c: SessionEvent => handler(c)
-    })
+    def react(handler: SessionEventHandler) = self ! AddHandler {
+      case c: SessionEvent => (handler orElse unhandled)(c)
+    }
   }
 
 

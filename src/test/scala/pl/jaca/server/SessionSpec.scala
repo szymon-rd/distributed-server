@@ -28,7 +28,7 @@ class SessionSpec extends TestKit(ActorSystem("SessionSpec")) with WordSpecLike 
       val proxyProbe = new TestProbe(system)
       val session = new DummySession(proxyProbe.ref)
       val dummyAction = (_: Option[Any]) => null
-      session.mapSessionState(dummyAction)
+      session.mapSessionStateFuture(dummyAction)
       val msg = proxyProbe.expectMsgType[UpdateState](200 millis)
       msg.f should be (dummyAction)
     }

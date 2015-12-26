@@ -1,17 +1,14 @@
 package example.newchat.model.sessionstate
 
+import example.newchat.packets.out.RoomMessage
 import pl.jaca.server.Session
 
 /**
  * @author Jaca777
  *         Created 2015-12-24 at 01
  */
-class LoggedUser(val nick: String, session: Session) {
+class LoggedUser(val name: String, session: Session) {
   def writeChatroomMsg(roomName: String, message: String) {
-    //session.write(RoomM)
-  }
-
-  def writeGlobalMsg(message: String) {
-
+    session.write(new RoomMessage(roomName, message))
   }
 }

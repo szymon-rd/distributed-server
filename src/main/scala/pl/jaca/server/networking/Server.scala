@@ -28,22 +28,22 @@ class Server(val port: Int, val resolver: PacketResolver) extends Actor with Act
 
   implicit val timeout = Timeout(2.seconds)
   implicit val dispatcher = context.dispatcher
-  
+
   def receive = running(Set.empty)
-  
+
   log.info(s"Application server is now running on port $port")
-  
+
   def running(subscribers: Set[ActorRef]): Receive = {
     case EventOccurred(event) =>
       subscribers.foreach(_ ! event)
       setupGuard(event)
     case Stop => shutdown()
-    case Subscribe => context become running(subscribers + sender)
+    case Subscribe(actor) => context become running(subscribers + actor)
   }
 
 
   def setupGuard(event: Event) = context.system.scheduler.scheduleOnce(2 seconds, new Runnable {
-    override def run() = if(!event.getAndHandle()) reportUnhandled(event)
+    override def run() = if (!event.getAndHandle()) reportUnhandled(event)
   })
 
   def reportUnhandled(event: Event) = log.warning(s"Unhandled event: $event")
