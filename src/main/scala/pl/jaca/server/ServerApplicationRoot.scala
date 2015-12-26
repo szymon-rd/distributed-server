@@ -19,6 +19,7 @@ class ServerApplicationRoot extends Application with Distribution with Configura
 
   implicit val executor = context.dispatcher
 
+  val systemConfig = context.system.settings.config
   val resolverProvider = new PacketResolverProvider(appConfig)
   val serviceProvider = new ServiceProvider(appConfig, createService)
   val handlerProvider = new EventHandlerProvider(appConfig, serviceProvider, createHandler)

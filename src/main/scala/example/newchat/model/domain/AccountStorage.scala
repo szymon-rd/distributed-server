@@ -1,28 +1,33 @@
 package example.newchat.model.domain
 
 import akka.actor.Actor
-import example.newchat.model.domain.AccountStorage.{Result, Create, Get}
+import example.newchat.model.domain.AccountStorage.{Create, Get, Result}
 import pl.jaca.cluster.distribution.Distributable
+
+import scala.concurrent.Future
 
 /**
  * @author Jaca777
  *         Created 2015-12-25 at 19
  */
 class AccountStorage extends Actor with Distributable {
-  var accounts = Map[String, Account]("admin" -> new Account("admin", "admin"))
+  implicit val ec = context.dispatcher
 
   override def receive: Receive = {
     case Get(name, pass) =>
-      println(name + " " + pass)
-      sender ! Result(auth(name, pass))
+      val currSender = sender
+      auth(name, pass).foreach(currSender ! Result(_))
     case Create(name, pass) =>
-      accounts += (name -> new Account(name, pass))
+      createAccount(name, pass)
   }
 
-  def auth(name: String, pass: String) = {
-    accounts.get(name).collect {
-      case a@Account(_, `pass`) => a
-    }
+  def createAccount(name: String, pass: String): Unit = {
+    AccountDAO.insert(new Account(name, pass))
+  }
+
+  def auth(name: String, pass: String): Future[Option[Account]] = {
+    val future = AccountDAO.forName(name)
+    future.map(_.filter(_.password == pass))
   }
 }
 

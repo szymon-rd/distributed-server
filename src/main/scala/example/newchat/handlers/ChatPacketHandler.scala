@@ -14,8 +14,7 @@ class ChatPacketHandler(@DI(serviceName = "chat") chat: ActorRef) extends EventA
   val eventStream = AsyncEventStream()
   eventStream.packets react {
     case p: JoinChatroom =>
-      println(p)
       chat ! Chat.JoinChatroom(p.channelName, p.sender)
-    case m: SendMessage => chat ! Chat.SendMessage(m.channelName, m.message)
+    case m: SendMessage => chat ! Chat.SendMessage(m.channelName, m.message, m.sender)
   }
 }

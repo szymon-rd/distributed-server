@@ -12,20 +12,20 @@ class DataConstructorProps extends WordSpecLike with Matchers {
   import DataConstructor._
   "DataConstructor" should {
     "construct arrays with bytes" in {
-      val data = dataHead \ 1.toByte \ 2.toByte \ 3.toByte
+      val data = dataHead \\ 1.toByte \\ 2.toByte \\ 3.toByte
       data should be(Array[Byte](1,2,3))
     }
     "construct arrays with shorts and chars" in {
-      val data = dataHead \ 1.toByte \ 2.toShort \ 3.toChar
+      val data = dataHead \\ 1.toByte \\ 2.toShort \\ 3.toChar
       data should be(Array[Byte](1,0, 2, 0, 3))
     }
     "construct arrays with ints and longs" in {
-      val data = dataHead \ 1.toByte \ 2 \ 3L
+      val data = dataHead \\ 1.toByte \\ 2 \\ 3L
       data should be(Array[Byte](1,0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3))
     }
     "construct arrays with strings" in {
       implicit val charset: Charset = Charset.forName("UTF-8")
-      val data = dataHead \ 1.toByte \\ "test"
+      val data = dataHead \\ 1.toByte \\ "test"
       data should be(Array[Byte](1) ++ "test".getBytes(charset))
     }
     "construct arrays with arrays of type AnyVal" in {

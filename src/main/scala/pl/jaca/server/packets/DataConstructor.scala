@@ -10,14 +10,14 @@ import com.google.common.primitives.{Chars, Ints, Longs, Shorts}
  */
 object DataConstructor {
 
-  private val defaultCharset = Charset.forName("UTF-16")
+  private val defaultCharset = Charset.forName("UTF-8")
 
   def dataHead = Array.empty[Byte]
 
   def lengthOf(text: String)(implicit charset: Charset = defaultCharset): Short = text.getBytes(charset).length.toShort
 
   implicit class ByteArrayConstructor(array: Array[Byte]) {
-    def \(a: AnyVal): Array[Byte] = a match {
+    def \\(a: AnyVal): Array[Byte] = a match {
       case b: Boolean => array :+ (if (b) 1.toByte else 0.toByte)
       case b: Byte => array :+ b
       case c: Char => array ++ Chars.toByteArray(c)
@@ -28,7 +28,7 @@ object DataConstructor {
 
     def \\(s: String)(implicit charset: Charset = defaultCharset): Array[Byte] = array ++ s.getBytes(charset)
 
-    def \(a: Array[_ <: AnyVal])(implicit d: DummyImplicit): Array[Byte] = a.foldLeft[Array[Byte]](array)((acc, elem) => acc \ elem)
+    def \(a: Array[_ <: AnyVal])(implicit d: DummyImplicit): Array[Byte] = a.foldLeft[Array[Byte]](array)((acc, elem) => acc \\ elem)
 
     def \(a: Array[String])(implicit charset: Charset = defaultCharset): Array[Byte] = a.foldLeft[Array[Byte]](array)((acc, elem) => acc \\ elem)
   }

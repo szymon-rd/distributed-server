@@ -1,14 +1,12 @@
 package pl.jaca.cluster
 
-import akka.actor.Actor
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
 
 /**
  * @author Jaca777
  *         Created 2015-10-02 at 23
  */
-trait Configurable extends Actor {
-  val systemConfig = context.system.settings.config
+trait Configurable {
   val appConfig = ConfigFactory.load(System.getProperty("app.config"))
 
 

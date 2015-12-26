@@ -5,8 +5,8 @@ import java.nio.charset.Charset
 import akka.util.Timeout
 import example.newchat.model.domain.ChatroomStorage.Result
 import example.newchat.model.domain.{Chatroom, ChatroomStorage}
-import example.newchat.model.service.Chat.JoinChatroom
-import example.newchat.model.sessionstate.LoggedUser
+import example.newchat.model.service.Chat.{SendMessage, JoinChatroom}
+import example.newchat.model.sessionstate.{NotLoggedUser, LoggedUser}
 import pl.jaca.cluster.distribution.{AbsoluteLoad, Load}
 import pl.jaca.server.Session
 import pl.jaca.server.service.Service
@@ -25,18 +25,39 @@ class Chat extends Service {
   val chatroomStorage = context.distribute(new ChatroomStorage, "chatroom-storage")
 
   override def receive: Receive = {
-    case JoinChatroom(name, sender) => joinChatroom(name, sender)
+    case JoinChatroom(name, sender) => sender.withSessionState {
+      case Some(l: LoggedUser) =>
+        joinChatroom(name, l)
+      case Some(l: NotLoggedUser) =>
+    }
+    case SendMessage(name, msg, sender) => sender.withSessionState {
+      case Some(l: LoggedUser) => sendMessage(name, msg, l)
+    }
   }
 
-  def joinChatroom(name: String, sender: Session) = {
-    sender.withSessionState {
-      case Some(l: LoggedUser) =>
-        for {
-          storage <- chatroomStorage
-          result <- storage ? ChatroomStorage.Get(name)
-          chatroom = result.asInstanceOf[Result].chatroom
-        } chatroom ! Chatroom.Join(l)
+  def joinChatroom(name: String, sender: LoggedUser) = {
+    for {
+      chatroom <- getChatroom(name)
+    } {
+      chatroom ! Chatroom.Join(sender)
     }
+  }
+
+
+  def sendMessage(channelName: String, msg: String, sender: LoggedUser): Unit = {
+    for {
+      chatroom <- getChatroom(channelName)
+    } chatroom ! Chatroom.Message(sender, msg)
+  }
+
+  def getChatroom(name: String) = {
+    for {
+      storage <- chatroomStorage
+      result <- storage ? ChatroomStorage.Get(name)
+    } yield {
+      result.asInstanceOf[Result].chatroom
+    }
+
   }
 
 
@@ -47,7 +68,7 @@ object Chat {
 
   case class JoinChatroom(channelName: String, sender: Session)
 
-  case class SendMessage(channelName: String, message: String)
+  case class SendMessage(channelName: String, message: String, sender: Session)
 
   val charset = Charset.forName("UTF-8")
 }

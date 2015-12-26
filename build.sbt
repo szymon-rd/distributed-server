@@ -1,4 +1,6 @@
-name := "CIFw"
+name := "distributed-server"
+
+organization := "pl.jaca"
 
 version := "0.1-SNAPSHOT"
 
@@ -20,19 +22,20 @@ libraryDependencies ++= Seq(
   "org.testng" % "testng" % "6.9.6",
   "org.scala-lang.modules" % "scala-xml_2.11" % "1.0.5",
   "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1",
-  "com.google.guava" % "guava" % "18.0"
+  "com.google.guava" % "guava" % "18.0",
+  "com.typesafe.slick" %% "slick" % "3.1.1",
+  "mysql" % "mysql-connector-java" % "5.1.38",
+  "com.typesafe.slick" % "slick-hikaricp_2.11" % "3.1.1"
 )
 
 publishMavenStyle := true
 
 crossPaths := false
 
-lazy val runWorker = "Runs worker cluster node."
-
 lazy val publishName = s"$name $version"
 
 publishTo := {
-  val path = Path.userHome.absolutePath + "Dropbox\\Public\\CIFw"
+  val path = Path.userHome.absolutePath + "\\Dropbox\\Public\\distributed-server"
   if (version.value.endsWith("SNAPSHOT"))
     Some(Resolver.file(publishName, new File(path + "\\snapshots")))
   else

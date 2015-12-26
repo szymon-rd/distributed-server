@@ -10,6 +10,7 @@ import scala.language.postfixOps
  *         Created 2015-08-16 at 20
  */
 class Connector extends ClusterNode with Configurable {
+  val systemConfig = context.system.settings.config
 
   val cluster = Cluster(context.system)
   val localClusterAddress = cluster.selfAddress

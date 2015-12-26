@@ -1,6 +1,6 @@
 package example.newchat.model.sessionstate
 
-import example.newchat.packets.out.RoomMessage
+import example.newchat.packets.out.{ChatroomJoined, RoomMessage}
 import pl.jaca.server.Session
 
 /**
@@ -10,5 +10,8 @@ import pl.jaca.server.Session
 class LoggedUser(val name: String, session: Session) {
   def writeChatroomMsg(roomName: String, message: String) {
     session.write(new RoomMessage(roomName, message))
+  }
+  def chatroomJoined(roomName: String): Unit = {
+    session.write(new ChatroomJoined(roomName))
   }
 }

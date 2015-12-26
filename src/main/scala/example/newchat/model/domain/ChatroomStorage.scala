@@ -1,8 +1,8 @@
 package example.newchat.model.domain
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{Actor, ActorRef}
 import example.newchat.model.domain.ChatroomStorage._
-import pl.jaca.cluster.distribution.{Distribution, Distributable}
+import pl.jaca.cluster.distribution.{Distributable, Distribution}
 
 import scala.concurrent.Future
 
@@ -10,7 +10,7 @@ import scala.concurrent.Future
  * @author Jaca777
  *         Created 2015-12-25 at 21
  */
-class ChatroomStorage extends Actor with Distributable with Distribution {
+class ChatroomStorage extends Actor with Distributable with Distribution{
   implicit val executionContext = context.dispatcher
 
   var runningChatrooms = Map[String, ActorRef]()
@@ -20,7 +20,7 @@ class ChatroomStorage extends Actor with Distributable with Distribution {
       if (!runningChatrooms.contains(name)) {
         val chatroom = createChatroom(name)
         val currSender = sender
-        chatroom.foreach(currSender ! _)
+        chatroom.foreach(currSender ! Result(_))
       } else sender ! Result(runningChatrooms(name))
   }
 

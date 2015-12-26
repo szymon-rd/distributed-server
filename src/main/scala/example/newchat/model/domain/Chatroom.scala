@@ -13,7 +13,9 @@ class Chatroom(val name: String) extends Actor with Distributable {
   var users: Set[LoggedUser] = Set()
 
   override def receive: Receive = {
-    case Join(user) => users += user
+    case Join(user) =>
+      user.chatroomJoined(name)
+      users += user
     case Message(user: LoggedUser, msg: String) => sendMessage(user, msg)
   }
 

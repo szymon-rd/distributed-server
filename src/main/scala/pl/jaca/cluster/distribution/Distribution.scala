@@ -53,7 +53,7 @@ trait Distribution {
 
     def distribute[T <: Distributable with Actor : ClassTag](props: Props, name: String): Future[ActorRef] = {
       val distributedProps = distributeProps(props)
-      distributedProps.map(context.actorOf)
+      distributedProps.map(props => context.actorOf(props, name))
     }
   }
 
