@@ -2,7 +2,7 @@ name := "distributed-server"
 
 organization := "pl.jaca"
 
-version := "0.1-SNAPSHOT"
+version := "1.0"
 
 scalaVersion := "2.11.1"
 
