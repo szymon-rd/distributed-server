@@ -6,7 +6,8 @@ version := "1.0"
 
 scalaVersion := "2.11.1"
 
-libraryDependencies ++= Seq(
+
+lazy val commonDependencies = Seq(
   "com.typesafe.akka" % "akka-actor_2.11" % "2.4.0",
   "com.typesafe.akka" % "akka-remote_2.11" % "2.4.0",
   "com.typesafe.akka" % "akka-cluster_2.11" % "2.4.0",
@@ -23,10 +24,34 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" % "scala-xml_2.11" % "1.0.5",
   "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1",
   "com.google.guava" % "guava" % "18.0",
-  "com.typesafe.slick" %% "slick" % "3.1.1",
   "mysql" % "mysql-connector-java" % "5.1.38",
   "com.typesafe.slick" % "slick-hikaricp_2.11" % "3.1.1"
 )
+
+lazy val app = Project(
+  id = "app",
+  base = file("app"),
+  settings = Seq(
+    libraryDependencies ++= commonDependencies
+  )) dependsOn(cluster, common)
+
+lazy val cluster = Project(id = "cluster",
+  base = file("cluster"),
+  settings = Seq(
+    libraryDependencies ++= commonDependencies
+  )) dependsOn common
+
+lazy val common = Project(id = "common",
+  base = file("common"),
+  settings = Seq(
+    libraryDependencies ++= commonDependencies
+  ))
+
+lazy val examples = Project(id = "examples",
+  base = file("examples"),
+  settings = Seq(
+    libraryDependencies ++= commonDependencies
+  )) dependsOn(cluster, app, common)
 
 publishMavenStyle := true
 
