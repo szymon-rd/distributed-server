@@ -1,4 +1,4 @@
-package pl.jaca.testutils
+package pl.jaca.util.testing
 
 import akka.actor.Actor
 import akka.testkit.TestProbe

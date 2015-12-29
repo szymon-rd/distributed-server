@@ -17,8 +17,7 @@ abstract class EventActor extends Actor with ActorLogging {
 
   def receive: Receive = reacting(PartialFunction.empty)
 
-
-  def reacting(handler: EventHandler): Receive = {
+  private def reacting(handler: EventHandler): Receive = {
     case e: Event if handler.isDefinedAt(e) =>
       e.getAndHandle()
       handler(e)
@@ -26,19 +25,27 @@ abstract class EventActor extends Actor with ActorLogging {
       context.become(reacting(h orElse handler orElse unhandled))
   }
 
-  val unhandled: EventHandler = {
+  private val unhandled: EventHandler = {
     case _ => //do nothing
   }
 
   private case class AddHandler(handler: EventHandler)
 
   private[eventhandling] class AsyncEventStream {
-
+    /**
+     * Adds new event handler with the highest priority. It's called as first.
+     */
     def react(handler: EventHandler) = self ! AddHandler(handler)
 
-    def packets = PacketAsyncStream
+    /**
+     * Returns event stream containing only InPacket events.
+     */
+    def packets: PacketAsyncStream.type = PacketAsyncStream
 
-    def sessionEvents = SessionEventAsyncStream
+    /**
+     * Returns event stream containing only SessionEvents.
+     */
+    def sessionEvents: SessionEventAsyncStream.type = SessionEventAsyncStream
   }
 
   object AsyncEventStream {

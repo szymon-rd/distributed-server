@@ -5,9 +5,9 @@ import akka.testkit._
 import io.netty.channel.ChannelFuture
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.networking.ConnectionProxy.{UpdateState, WithState, ForwardPacket}
-import pl.jaca.testutils.AkkaTools
-import pl.jaca.testutils.server.proxy.DummyPackets.DummyOutPacket
-import pl.jaca.testutils.server.proxy.DummyNettyChannel
+import pl.jaca.server.testing.{DummyPackets, DummyNettyChannel}
+import DummyPackets.DummyOutPacket
+import pl.jaca.util.testing.AkkaTools
 import scala.concurrent.duration._
 
 /**

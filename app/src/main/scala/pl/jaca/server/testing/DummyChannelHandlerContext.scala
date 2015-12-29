@@ -1,4 +1,4 @@
-package pl.jaca.testutils.server.proxy
+package pl.jaca.server.testing
 
 import java.net.SocketAddress
 

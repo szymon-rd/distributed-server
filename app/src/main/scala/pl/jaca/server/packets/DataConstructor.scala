@@ -10,12 +10,25 @@ import com.google.common.primitives.{Chars, Ints, Longs, Shorts}
  */
 object DataConstructor {
 
-  private val defaultCharset = Charset.forName("UTF-8")
+  private val DefaultCharset = Charset.forName("UTF-8")
 
+  /**
+   * Empty list, represents head of data.
+   */
   def dataHead = Array.empty[Byte]
 
-  def lengthOf(text: String)(implicit charset: Charset = defaultCharset): Short = text.getBytes(charset).length.toShort
+  /**
+   * Length of @text in @charset.
+   * @param text
+   * @param charset
+   * @return
+   */
+  def lengthOf(text: String)(implicit charset: Charset = DefaultCharset): Short = text.getBytes(charset).length.toShort
 
+  /**
+   * OutPacked data builder. Example of usage:
+   * dataHead \\ passLength \\ password \\ loginLength \\ login
+   */
   implicit class ByteArrayConstructor(array: Array[Byte]) {
     def \\(a: AnyVal): Array[Byte] = a match {
       case b: Boolean => array :+ (if (b) 1.toByte else 0.toByte)
@@ -26,11 +39,11 @@ object DataConstructor {
       case l: Long => array ++ Longs.toByteArray(l)
     }
 
-    def \\(s: String)(implicit charset: Charset = defaultCharset): Array[Byte] = array ++ s.getBytes(charset)
+    def \\(s: String)(implicit charset: Charset = DefaultCharset): Array[Byte] = array ++ s.getBytes(charset)
 
     def \(a: Array[_ <: AnyVal])(implicit d: DummyImplicit): Array[Byte] = a.foldLeft[Array[Byte]](array)((acc, elem) => acc \\ elem)
 
-    def \(a: Array[String])(implicit charset: Charset = defaultCharset): Array[Byte] = a.foldLeft[Array[Byte]](array)((acc, elem) => acc \\ elem)
+    def \(a: Array[String])(implicit charset: Charset = DefaultCharset): Array[Byte] = a.foldLeft[Array[Byte]](array)((acc, elem) => acc \\ elem)
   }
 
 

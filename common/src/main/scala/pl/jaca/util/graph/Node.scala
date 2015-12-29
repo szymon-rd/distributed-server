@@ -4,10 +4,10 @@ package pl.jaca.util.graph
  * @author Jaca777
  *         Created 2015-12-23 at 11
  */
-case class Node[T](value: T, leaves: Node[T]*) {
+case class Node[V](value: V, leaves: Node[V]*) {
 
-  def collect[R](f: (Seq[R], T) => R): R = {
-    def collect(toVisit: Node[T]): R = {
+  def collect[A](f: (Seq[A], V) => A): A = {
+    def collect(toVisit: Node[V]): A = {
       val s = toVisit.leaves.map(collect)
       f(s, toVisit.value)
     }
@@ -15,7 +15,7 @@ case class Node[T](value: T, leaves: Node[T]*) {
   }
 
   def checkForCycle() = {
-    def checkForCycle(toVisit: Node[T], visited: List[T]): Unit = {
+    def checkForCycle(toVisit: Node[V], visited: List[V]): Unit = {
       if(visited.contains(toVisit.value)){
         val path = s"${visited.mkString(" -> ")} -> ${toVisit.value}"
         throw new GraphException("Cyclic dependency found: " + path)

@@ -1,9 +1,9 @@
 package pl.jaca.server.networking
 
 import org.scalatest.{Matchers, WordSpecLike}
-import pl.jaca.server.{Session, Session$}
+import pl.jaca.server.Session
 import pl.jaca.server.packets.InPacket
-import pl.jaca.testutils.TypeMatchers
+import pl.jaca.util.testing.TypeMatchers
 
 /**
  * @author Jaca777

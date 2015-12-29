@@ -1,7 +1,7 @@
 package pl.jaca.util.graph
 
 import org.scalatest.{Matchers, WordSpecLike}
-import pl.jaca.testutils.TypeMatchers
+import pl.jaca.util.testing.TypeMatchers
 
 /**
  * @author Jaca777

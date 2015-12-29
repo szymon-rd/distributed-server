@@ -25,10 +25,10 @@ object AccountDAO {
 
   private val users = TableQuery[AccountTable]
 
-  def all(): Future[Seq[Account]] = db.run(users.result)
+  def all(): Future[Seq[Account]] = Db.run(users.result)
 
   private def get(name: String)(implicit ec: ExecutionContext): Future[Seq[Account]] = {
-    db.run({
+    Db.run({
      users.filter(_.name === name).result
     })
   }
@@ -39,6 +39,6 @@ object AccountDAO {
   }
 
   def insert(user: Account)(implicit ec: ExecutionContext): Future[Unit] = {
-    db.run(users += user).map { _ => () }
+    Db.run(users += user).map { _ => () }
   }
 }

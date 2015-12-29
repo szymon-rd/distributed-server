@@ -30,7 +30,10 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
       }
   }
 
-  def createFactory(className: String): Future[() => EventActor] = {
+  /**
+   * Creates EventActor factory (of type Future[() => EventActor]). Resolves class using its classloader.
+   */
+  private def createFactory(className: String): Future[() => EventActor] = {
     val classLoader: ClassLoader = this.getClass.getClassLoader
     val clazz = classLoader.loadClass(className)
     checkClass(clazz)
@@ -40,7 +43,10 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
     else throw new ServerConfigException("Event handler " + className + " has no constructor with injectable parameters.")
   }
 
-  def checkClass(clazz: Class[_]): Unit = {
+  /**
+   * Checks whether event handler class has allowed format, i.e. is subtype of EventActor and is not an abstract class.
+   */
+  private def checkClass(clazz: Class[_]): Unit = {
     if (!classOf[Actor].isAssignableFrom(clazz))
       throw new ServerConfigException(s"${clazz.getName} is not type of EventActor.")
     if (Modifier.isAbstract(clazz.getModifiers))
@@ -56,12 +62,18 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
     servicesFuture.map(services => () => constructor.newInstance(services: _*).asInstanceOf[EventActor])
   }
 
-  def getServicesNames(constructor: Constructor[_]): Array[String] = {
+  /**
+   * Returns service names from constructor parameters annotations.
+   */
+  private def getServicesNames(constructor: Constructor[_]): Array[String] = {
     val params = constructor.getParameters
     val annotations = params.map(_.getAnnotation(classOf[DI]))
     annotations.map(_.serviceName())
   }
 
+  /**
+   * Resolves services with given names.
+   */
   private def resolveServices(names: Array[String]): Future[List[ActorRef]] = {
     val options = names.map(name => (name, services.getService(name)))
     val unknownServices = options.filter(_._2.isEmpty).map(_._1)
@@ -88,7 +100,10 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
     listPromise.future
   }
 
-  def createHandlers(list: List[() => EventActor]) = list.map(f => handlerFactory(Props(f())))
+  /**
+   * Creates a handler.
+   */
+  private def createHandlers(list: List[() => EventActor]) = list.map(f => handlerFactory(Props(f())))
 }
 
 object EventHandlerProvider {

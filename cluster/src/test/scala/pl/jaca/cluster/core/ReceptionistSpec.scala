@@ -8,8 +8,8 @@ import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.cluster.core.Listener._
 import pl.jaca.cluster.distribution.{AbsoluteLoad, Receptionist}
 import pl.jaca.cluster.distribution.Receptionist._
-import pl.jaca.testutils.CollectionMatchers
-import pl.jaca.testutils.server.ClusterTools
+import pl.jaca.cluster.testing.ClusterTools
+import pl.jaca.util.testing.CollectionMatchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

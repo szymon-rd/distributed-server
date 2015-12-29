@@ -1,4 +1,4 @@
-package pl.jaca.testutils
+package pl.jaca.util.testing
 
 import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
 

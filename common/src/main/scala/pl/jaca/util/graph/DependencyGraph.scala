@@ -4,45 +4,56 @@ package pl.jaca.util.graph
  * @author Jaca777
  *         Created 2015-12-23 at 11
  */
-class DependencyGraph[T](val rootNodes: Node[T]*) {
+class DependencyGraph[A](val rootNodes: Node[A]*) {
 
-  def addEdge(from: T, to: T): DependencyGraph[T] = {
+  /**
+   * Adds edge to graph.
+   * @param from
+   * @param to
+   * @return
+   */
+  def addEdge(from: A, to: A): DependencyGraph[A] = {
     if(from == to) throw new GraphException(s"Cyclic dependency found: $from -> $to")
     val fromNode = resolveNode(from)
     val toNode = resolveNode(to)
-    if (fromNode.isEmpty && toNode.isEmpty) addEdge(from, new Node[T](to))
+    if (fromNode.isEmpty && toNode.isEmpty) addEdge(from, new Node[A](to))
     else if (fromNode.isEmpty) addEdge(from, toNode.get)
     else if (toNode.isEmpty) addEdge(fromNode.get, to)
     else addEdge(fromNode.get, toNode.get)
   }
 
-  def add(e: T): DependencyGraph[T] = {
-    val roots = rootNodes :+ new Node[T](e)
-    new DependencyGraph[T](roots: _*)
+  def add(e: A): DependencyGraph[A] = {
+    val roots = rootNodes :+ new Node[A](e)
+    new DependencyGraph[A](roots: _*)
   }
 
-  private def addEdge(from: T, to: Node[T]): DependencyGraph[T] = {
+  private def addEdge(from: A, to: Node[A]): DependencyGraph[A] = {
     val newNode = new Node(from, to)
     val roots = rootNodes :+ newNode
-    new DependencyGraph[T](roots: _*)
+    new DependencyGraph[A](roots: _*)
   }
 
-  private def addEdge(from: Node[T], to: T): DependencyGraph[T] = {
-    val newNode = new Node[T](to)
+  private def addEdge(from: Node[A], to: A): DependencyGraph[A] = {
+    val newNode = new Node[A](to)
     val newLeafs = from.leaves :+ newNode
     val updatedNode = new Node(from.value, newLeafs: _*)
     update(from, updatedNode)
   }
 
-  private def addEdge(from: Node[T], to: Node[T]): DependencyGraph[T] = {
+  private def addEdge(from: Node[A], to: Node[A]): DependencyGraph[A] = {
     val leafs = from.leaves :+ to
-    val updatedNode = new Node[T](from.value, leafs: _*)
+    val updatedNode = new Node[A](from.value, leafs: _*)
     updatedNode.checkForCycle()
     update(from, updatedNode)
   }
 
-  def resolveNode(from: T): Option[Node[T]] = {
-    def resolveAcc(node: Node[T]): Option[Node[T]] = {
+  /**
+   * Finds node with element @from in graph.
+   * @param from
+   * @return
+   */
+  def resolveNode(from: A): Option[Node[A]] = {
+    def resolveAcc(node: Node[A]): Option[Node[A]] = {
       if (node.value != from) {
         val leafs = node.leaves
         val resolved = leafs.map(resolveAcc)
@@ -56,20 +67,26 @@ class DependencyGraph[T](val rootNodes: Node[T]*) {
     found.map(_.get)
   }
 
-  def update(node: Node[T], newNode: Node[T]): DependencyGraph[T] = {
-    def updateAcc(currNode: Node[T]): Node[T] = {
+  /**
+   * Replaces @node with @newNode in graph.
+   * @param node
+   * @param newNode
+   * @return
+   */
+  def update(node: Node[A], newNode: Node[A]): DependencyGraph[A] = {
+    def updateAcc(currNode: Node[A]): Node[A] = {
       if (currNode == node) newNode
       else {
         val value = currNode.value
         val newLeafs = currNode.leaves.map(updateAcc)
-        new Node[T](value, newLeafs: _*)
+        new Node[A](value, newLeafs: _*)
       }
     }
-    new DependencyGraph[T](rootNodes.map(updateAcc): _*)
+    new DependencyGraph[A](rootNodes.map(updateAcc): _*)
   }
 
-  def collect[R](zero: T)(f: (Seq[R], T) => R): R = f(rootNodes.map(_.collect(f)), zero)
-  def collectEachRoot[R](f: (Seq[R], T) => R): Seq[R] = rootNodes.map(_.collect(f))
+  def collect[B](zero: A)(f: (Seq[B], A) => B): B = f(rootNodes.map(_.collect(f)), zero)
+  def collectEachRoot[B](f: (Seq[B], A) => B): Seq[B] = rootNodes.map(_.collect(f))
 
 }
 

@@ -56,9 +56,15 @@ class Server(val port: Int, val resolver: PacketResolver) extends Actor with Act
 
 object Server {
 
+  /**
+   * Adds new subscription to server event stream.
+   */
   case class Subscribe(eventActor: ActorRef)
 
   //IN
+  /**
+   * Stops the server.
+   */
   object Stop
 
   case class EventOccurred(event: ServerEvent)

@@ -4,9 +4,9 @@ import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.networking.ConnectionProxy.{WithState, UpdateState, ForwardPacket}
-import pl.jaca.testutils.TypeMatchers
-import pl.jaca.testutils.server.proxy.DummyPackets.DummyOutPacket
-import pl.jaca.testutils.server.proxy.DummySession
+import pl.jaca.server.testing.{DummySession, DummyPackets}
+import DummyPackets.DummyOutPacket
+import pl.jaca.util.testing.TypeMatchers
 import scala.concurrent.duration._
 /**
  * @author Jaca777

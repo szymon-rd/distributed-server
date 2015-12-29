@@ -31,6 +31,11 @@ trait Register extends ActorLogging {
     this.loadFactory = factory
   }
 
+  /**
+   * Adds new member to the register.
+   * @param member
+   * @return
+   */
   def register(member: Member): Try[RegisteredMember] = {
     registeredMembers.find(_.clusterMember == member) match {
       case Some(_) => Failure(new RegisterException(s"Unable to register a member. The given member is already registered: ${member.address}"))
@@ -43,6 +48,11 @@ trait Register extends ActorLogging {
     }
   }
 
+  /**
+   * Removes @member from register.
+   * @param member
+   * @return
+   */
   def unregister(member: Member): Try[RegisteredMember] = {
     registeredMembers.find(_.clusterMember == member) match {
       case Some(toUnregister) =>

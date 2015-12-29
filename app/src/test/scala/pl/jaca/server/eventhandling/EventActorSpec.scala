@@ -7,8 +7,9 @@ import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.networking.Event
 import pl.jaca.server.networking.ServerEvent.SessionEvent
 import pl.jaca.server.packets.InPacket
-import pl.jaca.testutils.CollectionMatchers
-import pl.jaca.testutils.server.proxy.DummyPackets.DummyInPacket
+import pl.jaca.server.testing.DummyPackets
+import DummyPackets.DummyInPacket
+import pl.jaca.util.testing.CollectionMatchers
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

@@ -1,6 +1,6 @@
-package pl.jaca.testutils.server.proxy
+package pl.jaca.server.testing
 
-import io.netty.buffer.{Unpooled, ByteBuf}
+import io.netty.buffer.{ByteBuf, Unpooled}
 import pl.jaca.server.Session
 import pl.jaca.server.packets.{InPacket, OutPacket}
 

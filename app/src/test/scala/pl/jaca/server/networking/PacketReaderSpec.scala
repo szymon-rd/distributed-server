@@ -1,8 +1,9 @@
 package pl.jaca.server.networking
 
 import org.scalatest.{Matchers, WordSpecLike}
-import pl.jaca.testutils.TypeMatchers
-import pl.jaca.testutils.server.proxy.DummyPackets._
+import pl.jaca.server.testing.DummyPackets
+import DummyPackets._
+import pl.jaca.util.testing.TypeMatchers
 
 /**
  * @author Jaca777

@@ -9,5 +9,8 @@ import slick.driver.MySQLDriver
  *         Created 2015-12-26 at 18
  */
 object DbAccessor extends Configurable {
-  val db = DatabaseConfig.forConfig[MySQLDriver]("server-app.database", appConfig).db
+  /**
+   * Creates database connection and returns it.
+   */
+  lazy val Db = DatabaseConfig.forConfig[MySQLDriver]("server-app.database", appConfig).db
 }

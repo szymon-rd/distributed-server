@@ -2,16 +2,17 @@ name := "distributed-server"
 
 organization := "pl.jaca"
 
-version := "1.0"
+version := "1.0.1"
 
-scalaVersion := "2.11.1"
+scalaVersion := "2.11.7"
+
+scalaBinaryVersion := CrossVersion.binaryScalaVersion("2.11.7")
 
 
 lazy val commonDependencies = Seq(
   "com.typesafe.akka" % "akka-actor_2.11" % "2.4.0",
   "com.typesafe.akka" % "akka-remote_2.11" % "2.4.0",
   "com.typesafe.akka" % "akka-cluster_2.11" % "2.4.0",
-  "com.typesafe.akka" % "akka-cluster-metrics_2.11" % "2.4.0",
   "com.typesafe.akka" % "akka-contrib_2.11" % "2.4.0",
   "com.typesafe.akka" % "akka-testkit_2.11" % "2.4.0",
   "io.netty" % "netty-all" % "4.1.0.Beta5",
@@ -25,10 +26,11 @@ lazy val commonDependencies = Seq(
   "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1",
   "com.google.guava" % "guava" % "18.0",
   "mysql" % "mysql-connector-java" % "5.1.38",
-  "com.typesafe.slick" % "slick-hikaricp_2.11" % "3.1.1"
+  "com.typesafe.slick" % "slick-hikaricp_2.11" % "3.1.1",
+  "com.typesafe.slick" % "slick_2.11" % "3.1.1"
 )
 
-lazy val app = Project(
+lazy val serverApp = Project(
   id = "app",
   base = file("app"),
   settings = Seq(
@@ -50,22 +52,14 @@ lazy val common = Project(id = "common",
 lazy val examples = Project(id = "examples",
   base = file("examples"),
   settings = Seq(
-    libraryDependencies ++= commonDependencies
-  )) dependsOn(cluster, app, common)
+    libraryDependencies ++= commonDependencies,
+    publishLocal := {},
+    publish := {}
+  )) dependsOn(cluster, serverApp, common)
 
-publishMavenStyle := true
+publishLocal := {}
 
-crossPaths := false
-
-lazy val publishName = s"$name $version"
-
-publishTo := {
-  val path = Path.userHome.absolutePath + "\\Dropbox\\Public\\distributed-server"
-  if (version.value.endsWith("SNAPSHOT"))
-    Some(Resolver.file(publishName, new File(path + "\\snapshots")))
-  else
-    Some(Resolver.file(publishName, new File(path + "\\releases")))
-}
+publish := {}
 
 cleanupCommands in console :=
   """
@@ -75,3 +69,5 @@ cleanupCommands in console :=
 addCommandAlias("tg-start", "re-start")
 
 addCommandAlias("tg-stop", "re-stop")
+
+addCommandAlias("publishm8", "publishM2")

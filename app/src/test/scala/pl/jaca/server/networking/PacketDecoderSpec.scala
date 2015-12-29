@@ -7,8 +7,8 @@ import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.Session
 import pl.jaca.server.packets.{InPacket, OutPacket}
-import pl.jaca.testutils.server.proxy.{DummyChannelHandlerContext, DummySession}
-import pl.jaca.testutils.server.proxy.DummyPackets._
+import pl.jaca.server.testing.{DummySession, DummyChannelHandlerContext, DummyPackets}
+import DummyPackets._
 
 /**
  * @author Jaca777

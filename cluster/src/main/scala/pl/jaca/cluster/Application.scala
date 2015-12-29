@@ -10,7 +10,7 @@ abstract class Application extends Actor with ActorLogging {
   log.debug(s"Starting application at ${self.path}")
 }
 object Application {
-  val appActorPath = "user/launcher/clusterInitializer/sysNode/app"
+  val AppActorPath = "user/launcher/clusterInitializer/sysNode/app"
   object Launch
 }
 

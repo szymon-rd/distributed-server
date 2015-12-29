@@ -1,6 +1,6 @@
 package pl.jaca.server.networking
 
-import pl.jaca.server.{Session, Session$}
+import pl.jaca.server.Session
 import pl.jaca.server.packets.InPacket
 
 
@@ -19,6 +19,9 @@ abstract class PacketResolver {
   }
   def resolve: Resolve
 
+  /**
+   * Combines @resolver with @this. Given resolver has higher priority, i.e. it's called as first.
+   */
   def and(resolver: PacketResolver): PacketResolver = {
     new PacketResolver {
       override def resolve: Resolve = resolver.resolve orElse PacketResolver.this.resolve

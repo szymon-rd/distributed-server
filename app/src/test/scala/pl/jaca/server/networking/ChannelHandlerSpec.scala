@@ -8,7 +8,7 @@ import pl.jaca.server.Session
 import pl.jaca.server.networking.Server.EventOccurred
 import pl.jaca.server.networking.ServerEvent.{SessionInactive, SessionActive}
 import pl.jaca.server.packets.InPacket
-import pl.jaca.testutils.server.proxy.{DummyChannelHandlerContext, DummyNettyChannel}
+import pl.jaca.server.testing.{DummyNettyChannel, DummyChannelHandlerContext}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
