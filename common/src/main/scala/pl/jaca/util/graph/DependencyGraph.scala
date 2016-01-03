@@ -85,8 +85,8 @@ class DependencyGraph[A](val rootNodes: Node[A]*) {
     new DependencyGraph[A](rootNodes.map(updateAcc): _*)
   }
 
-  def collect[B](zero: A)(f: (Seq[B], A) => B): B = f(rootNodes.map(_.collect(f)), zero)
-  def collectEachRoot[B](f: (Seq[B], A) => B): Seq[B] = rootNodes.map(_.collect(f))
+  def reduce[B](zero: A)(f: (Seq[B], A) => B): B = f(rootNodes.map(_.collect(f)), zero)
+  def reduceEachRoot[B](f: (Seq[B], A) => B): Seq[B] = rootNodes.map(_.collect(f))
 
 }
 

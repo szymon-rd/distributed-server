@@ -69,7 +69,7 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
       constructor = getConstructor(clazz)
     } yield GraphElem(name, constructor)).toSeq
     val graph = createGraph(elements)
-    graph.collectEachRoot[Seq[(String, Future[ActorRef])]](createService).flatten.toMap
+    graph.reduceEachRoot[Seq[(String, Future[ActorRef])]](createService).flatten.toMap
   }
 
   /**

@@ -77,18 +77,18 @@ class DependencyGraphSpec extends WordSpecLike with Matchers with TypeMatchers {
     "collect values in connected graph" in {
       val root1 = Node(1, Node(2), Node(3, Node(4), Node(5)))
       val graph = new DependencyGraph[Int](root1)
-      graph.collect[Int](0)(_.sum + _) should be (15)
+      graph.reduce[Int](0)(_.sum + _) should be (15)
     }
     "collect values in disconnected graph" in {
       val root1 = Node(1, Node(2), Node(3, Node(4), Node(5)))
       val root2 = Node(6, Node(7), Node(8, Node(9)))
       val graph = new DependencyGraph[Int](Array(root1, root2): _*)
-      graph.collect[Int](0)(_.sum + _) should be (45)
+      graph.reduce[Int](0)(_.sum + _) should be (45)
     }
     "collect values from bottom to top" in {
       val root1 = Node(1, Node(2), Node(3, Node(4), Node(5)))
       val graph = new DependencyGraph[Int](root1)
-      graph.collect[String](0)(_.mkString("") + _) should be ("245310")
+      graph.reduce[String](0)(_.mkString("") + _) should be ("245310")
     }
   }
 }

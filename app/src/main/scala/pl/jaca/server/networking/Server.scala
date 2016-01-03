@@ -19,7 +19,7 @@ class Server(val port: Int, val resolver: PacketResolver) extends Actor with Act
 
   val bossGroup = new NioEventLoopGroup
   val workersGroup = new NioEventLoopGroup
-  val proxyFactor = (c: Channel) => context.actorOf(Props(new ConnectionProxy(c)))
+  val proxyFactor = (c: Channel) => context.actorOf(Props(new SessionProxy(c)))
   val bootstrap = new ServerBootstrap()
     .group(bossGroup, workersGroup)
     .channel(classOf[NioServerSocketChannel])

@@ -4,8 +4,8 @@ import akka.actor.ActorRef
 import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
 import pl.jaca.server.packets.OutPacket
-import pl.jaca.server.networking.ConnectionProxy
-import ConnectionProxy._
+import pl.jaca.server.networking.SessionProxy
+import SessionProxy._
 
 import scala.concurrent.Future
 
@@ -20,19 +20,19 @@ class Session(val host: String, val port: Int, channel: Channel, val proxy: Acto
   private val channelID = channel.id()
 
   def write(packet: OutPacket) {
-    proxy.tell(ForwardPacket(packet), ActorRef.noSender)
+    proxy ! ForwardPacket(packet)
   }
 
   def mapSessionState(f: (Option[Any] => Any)) = {
-    proxy.tell(UpdateState(f), ActorRef.noSender)
+    proxy ! UpdateState(f)
   }
 
   def mapSessionStateFuture(f: (Option[Any] => Future[Any])) = {
-    proxy.tell(UpdateStateFuture(f), ActorRef.noSender)
+    proxy ! UpdateStateFuture(f)
   }
-  
+
   def withSessionState(action: (Option[Any] => Unit)) = {
-    proxy.tell(WithState(action), ActorRef.noSender)
+    proxy ! WithState(action)
   }
 
   override def hashCode(): Int = channel.hashCode()

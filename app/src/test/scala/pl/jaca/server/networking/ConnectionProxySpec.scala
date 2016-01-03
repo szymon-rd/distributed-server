@@ -4,7 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit._
 import io.netty.channel.ChannelFuture
 import org.scalatest.{Matchers, WordSpecLike}
-import pl.jaca.server.networking.ConnectionProxy.{UpdateState, WithState, ForwardPacket}
+import pl.jaca.server.networking.SessionProxy.{UpdateState, WithState, ForwardPacket}
 import pl.jaca.server.testing.{DummyPackets, DummyNettyChannel}
 import DummyPackets.DummyOutPacket
 import pl.jaca.util.testing.AkkaTools
@@ -38,7 +38,7 @@ class ConnectionProxySpec extends TestKit(ActorSystem("ConnectionProxySpec")) wi
       val packet1 = new DummyOutPacket
       val packet2 = new DummyOutPacket
       val packet3 = new DummyOutPacket
-      val proxy = TestActorRef(new ConnectionProxy(channel))
+      val proxy = TestActorRef(new SessionProxy(channel))
       proxy ! ForwardPacket(packet1)
       proxy ! ForwardPacket(packet2)
       proxy ! ForwardPacket(packet3)
@@ -47,13 +47,13 @@ class ConnectionProxySpec extends TestKit(ActorSystem("ConnectionProxySpec")) wi
     "have none state" in {
       val testProbe = new TestProbe(system)
       val channel = new DummyNettyChannel
-      val proxy = TestActorRef(new ConnectionProxy(channel))
+      val proxy = TestActorRef(new SessionProxy(channel))
       getState(proxy) should be(None)
     }
     "update state" in {
       val testProbe = new TestProbe(system)
       val channel = new DummyNettyChannel
-      val proxy = TestActorRef(new ConnectionProxy(channel))
+      val proxy = TestActorRef(new SessionProxy(channel))
       proxy ! UpdateState(_ => 2)
       proxy ! UpdateState {
         case Some(i: Int) => i + 1
@@ -63,7 +63,7 @@ class ConnectionProxySpec extends TestKit(ActorSystem("ConnectionProxySpec")) wi
     "perform actions with state" in {
       val testProbe = new TestProbe(system)
       val channel = new DummyNettyChannel
-      val proxy = TestActorRef(new ConnectionProxy(channel))
+      val proxy = TestActorRef(new SessionProxy(channel))
       var t = "test"
       proxy ! UpdateState(_ => "abc")
       proxy ! WithState(s => t += s.get)

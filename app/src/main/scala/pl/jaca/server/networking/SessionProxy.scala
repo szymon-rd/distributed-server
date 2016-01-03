@@ -2,7 +2,7 @@ package pl.jaca.server.networking
 
 import akka.actor.Actor
 import io.netty.channel.Channel
-import pl.jaca.server.networking.ConnectionProxy._
+import pl.jaca.server.networking.SessionProxy._
 import pl.jaca.server.packets.OutPacket
 
 import scala.concurrent.Future
@@ -11,7 +11,7 @@ import scala.concurrent.Future
  * @author Jaca777
  *         Created 2015-10-11 at 15
  */
-class ConnectionProxy(val channel: Channel) extends Actor {
+class SessionProxy(val channel: Channel) extends Actor {
   implicit val executionContext = context.dispatcher
 
   override def receive = stateful(None)
@@ -23,7 +23,7 @@ class ConnectionProxy(val channel: Channel) extends Actor {
     case UpdateStateFuture(action) =>
       val futureState = action(state)
       for(newState <- futureState)
-        context become stateful(Some(newState))
+        self ! UpdateState(_ -> newState)
     case WithState(action) => action(state)
     case ForwardPacket(packet) => channel.writeAndFlush(packet)
     case GetChannel => sender ! ProxyChannel(channel)
@@ -31,7 +31,7 @@ class ConnectionProxy(val channel: Channel) extends Actor {
 
 }
 
-object ConnectionProxy {
+object SessionProxy {
 
   //IN
   case class ForwardPacket(outPacket: OutPacket)
