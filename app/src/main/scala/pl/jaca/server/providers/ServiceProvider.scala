@@ -7,7 +7,7 @@ import akka.actor.{ActorRef, Props}
 import com.typesafe.config.{Config, ConfigObject, ConfigValue}
 import pl.jaca.server.providers.ServiceProvider._
 import pl.jaca.server.service.Service
-import pl.jaca.server.{DI, ServerConfigException}
+import pl.jaca.server.{Inject, ServerConfigException}
 import pl.jaca.util.futures.FutureConversions
 import pl.jaca.util.graph.{DependencyGraph, GraphException}
 
@@ -110,7 +110,7 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
     }
 
     def isDIDefined(param: Parameter): Boolean = {
-      param.getAnnotations.exists(_.isInstanceOf[DI])
+      param.getAnnotations.exists(_.isInstanceOf[Inject])
     }
 
     def isInjectable(c: Constructor[_]): Boolean = {
@@ -142,10 +142,10 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
   }
 
   /**
-   * Resolves name of service given in DI annotation.
+   * Resolves name of service given in Inject annotation.
    */
   private def getServiceName(param: Parameter): String = {
-    val annotation = param.getAnnotation(classOf[DI])
+    val annotation = param.getAnnotation(classOf[Inject])
     annotation.serviceName()
   }
 

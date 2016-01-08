@@ -3,7 +3,7 @@ package example.newchat.handlers
 import akka.actor.ActorRef
 import example.newchat.model.service.Authorization
 import example.newchat.model.sessionstate.NotLoggedUser
-import pl.jaca.server.DI
+import pl.jaca.server.Inject
 import pl.jaca.server.eventhandling.{EventActor, ServerEventHandling}
 import example.newchat.packets.in.{Register, Login}
 import pl.jaca.server.networking.ServerEvent.SessionActive
@@ -15,12 +15,12 @@ import pl.jaca.server.networking.ServerEvent.SessionActive
  */
 
 
-class AuthorizationHandler(@DI(serviceName = "authorization") authorization: ActorRef) extends EventActor with ServerEventHandling {
+class AuthorizationHandler(@Inject(serviceName = "authorization") authorization: ActorRef) extends EventActor with ServerEventHandling {
   val eventStream = AsyncEventStream()
 
   eventStream.sessionEvents react {
     case SessionActive(s) =>
-      s.mapSessionState(_ => new NotLoggedUser(s))
+      s.mapState(_ => new NotLoggedUser(s))
   }
 
   eventStream.packets react {

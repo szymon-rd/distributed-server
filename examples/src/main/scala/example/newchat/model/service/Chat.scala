@@ -25,12 +25,12 @@ class Chat extends Service {
   val chatroomStorage = context.distribute(new ChatroomStorage, "chatroom-storage")
 
   override def receive: Receive = {
-    case JoinChatroom(name, sender) => sender.withSessionState {
+    case JoinChatroom(name, sender) => sender.withState {
       case Some(l: LoggedUser) =>
         joinChatroom(name, l)
       case Some(l: NotLoggedUser) =>
     }
-    case SendMessage(name, msg, sender) => sender.withSessionState {
+    case SendMessage(name, msg, sender) => sender.withState {
       case Some(l: LoggedUser) => sendMessage(name, msg, l)
     }
   }

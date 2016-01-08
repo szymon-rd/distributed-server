@@ -85,7 +85,7 @@ object ServiceProviderSpec {
     }
   }
 
-  class ServiceA(@DI(serviceName = "serviceB") val service1: ActorRef, @DI(serviceName = "serviceC") val service2: ActorRef, @DI(serviceName = "serviceE") service: ActorRef) extends Service {
+  class ServiceA(@Inject(serviceName = "serviceB") val service1: ActorRef, @Inject(serviceName = "serviceC") val service2: ActorRef, @Inject(serviceName = "serviceE") service: ActorRef) extends Service {
     override def receive: Actor.Receive = {
       case _ =>
     }
@@ -97,7 +97,7 @@ object ServiceProviderSpec {
     }
   }
 
-  class ServiceC(@DI(serviceName = "serviceD") service1: ActorRef, @DI(serviceName = "serviceE") service2: ActorRef) extends Service {
+  class ServiceC(@Inject(serviceName = "serviceD") service1: ActorRef, @Inject(serviceName = "serviceE") service2: ActorRef) extends Service {
     override def receive: Actor.Receive = {
       case _ =>
     }
@@ -115,7 +115,7 @@ object ServiceProviderSpec {
     }
   }
 
-  class ServiceF(@DI(serviceName = "serviceG") service: ActorRef) extends Service {
+  class ServiceF(@Inject(serviceName = "serviceG") service: ActorRef) extends Service {
     override def receive: Actor.Receive = {
       case _ =>
     }
@@ -127,19 +127,19 @@ object ServiceProviderSpec {
     }
   }
 
-  class CyclicA(@DI(serviceName = "cyclicB") cyclicB: ActorRef) extends Service {
+  class CyclicA(@Inject(serviceName = "cyclicB") cyclicB: ActorRef) extends Service {
     override def receive: Actor.Receive = {
       case _ =>
     }
   }
 
-  class CyclicB(@DI(serviceName = "cyclicC") cyclicC: ActorRef) extends Service {
+  class CyclicB(@Inject(serviceName = "cyclicC") cyclicC: ActorRef) extends Service {
     override def receive: Actor.Receive = {
       case _ =>
     }
   }
 
-  class CyclicC(@DI(serviceName = "cyclicA") cyclicA: ActorRef) extends Service {
+  class CyclicC(@Inject(serviceName = "cyclicA") cyclicA: ActorRef) extends Service {
     override def receive: Actor.Receive = {
       case _ =>
     }

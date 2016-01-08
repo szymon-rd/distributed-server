@@ -23,15 +23,15 @@ class Session(val host: String, val port: Int, channel: Channel, val proxy: Acto
     proxy ! ForwardPacket(packet)
   }
 
-  def mapSessionState(f: (Option[Any] => Any)) = {
+  def mapState(f: (Option[Any] => Any)) = {
     proxy ! UpdateState(f)
   }
 
-  def mapSessionStateFuture(f: (Option[Any] => Future[Any])) = {
+  def mapStateToFuture(f: (Option[Any] => Future[Any])) = {
     proxy ! UpdateStateFuture(f)
   }
 
-  def withSessionState(action: (Option[Any] => Unit)) = {
+  def withState(action: (Option[Any] => Unit)) = {
     proxy ! WithState(action)
   }
 

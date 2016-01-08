@@ -87,7 +87,7 @@ object EventHandlerProviderSpec {
 
   class NonInjectableHandler(service: Service) extends EventActor
 
-  class HandlerA(@DI(serviceName = "serviceA") val serviceA: ActorRef, @DI(serviceName = "serviceB") val serviceB: ActorRef) extends EventActor
+  class HandlerA(@Inject(serviceName = "serviceA") val serviceA: ActorRef, @Inject(serviceName = "serviceB") val serviceB: ActorRef) extends EventActor
 
   class HandlerB extends EventActor
 

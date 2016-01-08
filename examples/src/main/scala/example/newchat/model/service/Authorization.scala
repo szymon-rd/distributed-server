@@ -26,7 +26,7 @@ class Authorization extends Service {
 
   def receive: Receive = {
     case Login(login, password, session) =>
-      session.mapSessionStateFuture {
+      session.mapStateToFuture {
         case Some(l: NotLoggedUser) =>
           auth(login, password, l)
         case Some(l: LoggedUser) => Future(l)

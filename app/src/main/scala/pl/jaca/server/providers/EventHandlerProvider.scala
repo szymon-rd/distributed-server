@@ -4,7 +4,7 @@ import java.lang.reflect.{Modifier, Constructor}
 
 import akka.actor.{Props, Actor, ActorRef}
 import com.typesafe.config.Config
-import pl.jaca.server.{DI, ServerConfigException}
+import pl.jaca.server.{Inject, ServerConfigException}
 import pl.jaca.server.eventhandling.EventActor
 import pl.jaca.server.providers.EventHandlerProvider._
 import pl.jaca.util.futures.FutureConversions
@@ -67,7 +67,7 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
    */
   private def getServicesNames(constructor: Constructor[_]): Array[String] = {
     val params = constructor.getParameters
-    val annotations = params.map(_.getAnnotation(classOf[DI]))
+    val annotations = params.map(_.getAnnotation(classOf[Inject]))
     annotations.map(_.serviceName())
   }
 
