@@ -1,5 +1,7 @@
 package pl.jaca.server.db
 
+import java.sql.SQLTimeoutException
+
 import pl.jaca.cluster.Configurable
 import slick.backend.DatabaseConfig
 import slick.driver.MySQLDriver
@@ -12,5 +14,13 @@ object DbAccessor extends Configurable {
   /**
    * Creates database connection and returns it.
    */
-  lazy val Db = DatabaseConfig.forConfig[MySQLDriver]("server-app.database", appConfig).db
+  val Db = DatabaseConfig.forConfig[MySQLDriver]("server-app.database", appConfig).db
+
+  //Testing connection
+  try {
+    val conn = Db.source.createConnection()
+  } catch {
+    case e: SQLTimeoutException =>
+      throw new RuntimeException("Unable to create connection with db.", e)
+  }
 }

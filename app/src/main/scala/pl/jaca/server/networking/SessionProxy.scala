@@ -23,7 +23,7 @@ class SessionProxy(val channel: Channel) extends Actor {
     case UpdateStateFuture(action) =>
       val futureState = action(state)
       for(newState <- futureState)
-        self ! UpdateState(_ -> newState)
+        self ! UpdateState(_ => newState)
     case WithState(action) => action(state)
     case ForwardPacket(packet) => channel.writeAndFlush(packet)
     case GetChannel => sender ! ProxyChannel(channel)

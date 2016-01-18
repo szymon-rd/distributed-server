@@ -34,7 +34,7 @@ object AccountDAO {
   }
 
   def forName(name: String)(implicit ec: ExecutionContext): Future[Option[Account]] = get(name).map {
-    case a :: _ => Some(a)
+    case a +: _ => Some(a)
     case Seq() => None
   }
 

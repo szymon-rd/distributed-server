@@ -15,8 +15,11 @@ class AccountStorage extends Actor with Distributable {
 
   override def receive: Receive = {
     case Get(name, pass) =>
-      val currSender = sender
-      auth(name, pass).foreach(currSender ! Result(_))
+      val currSender = sender()
+      auth(name, pass).foreach {
+        account =>
+        currSender ! Result(account)
+      }
     case Create(name, pass) =>
       createAccount(name, pass)
   }
@@ -27,7 +30,9 @@ class AccountStorage extends Actor with Distributable {
 
   def auth(name: String, pass: String): Future[Option[Account]] = {
     val future = AccountDAO.forName(name)
-    future.map(_.filter(_.password == pass))
+    future.map({
+      _.filter(_.password == pass)
+    })
   }
 }
 

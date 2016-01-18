@@ -12,11 +12,20 @@ abstract class PacketResolver {
 
   type Resolve = PartialFunction[Short, (Short, Short, Array[Byte], Session) => InPacket]
 
-  def resolve(id: Short, length: Short, data: Array[Byte], sender: Session): InPacket = (resolve orElse unknown)(id)(id, length, data, sender)
+  def resolve(id: Short, length: Short, data: Array[Byte], sender: Session): InPacket = {
+    try {
+      (resolve orElse unknown)(id)(id, length, data, sender)
+    } catch {
+      case exception: Exception =>
+        UnresolvedPacket(s"Exception thrown when resolving packet: ${exception.toString}",
+          id, length, data, sender)
+    }
+  }
 
   private val unknown: Resolve = {
-    case _ => UnknownPacket
+    case _ => (i, l, d, s) => UnresolvedPacket(s"Unknown packet of id: $i", i, l, d, s)
   }
+
   def resolve: Resolve
 
   /**
@@ -28,4 +37,5 @@ abstract class PacketResolver {
     }
   }
 }
-case class UnknownPacket(i: Short, l: Short, data: Array[Byte], s: Session) extends InPacket(i,l,data,s)
+
+case class UnresolvedPacket(cause: String, i: Short, l: Short, data: Array[Byte], s: Session) extends InPacket(i, l, data, s)

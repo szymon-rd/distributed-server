@@ -11,7 +11,8 @@ import pl.jaca.server.{Session, Session$}
 
 private[server] trait Event {
   private val handled = new AtomicBoolean(false)
-  def getAndHandle(): Boolean = handled.getAndSet(true)
+
+  private[server] def getAndHandle(): Boolean = handled.getAndSet(true)
 }
 
 sealed trait ServerEvent extends Event

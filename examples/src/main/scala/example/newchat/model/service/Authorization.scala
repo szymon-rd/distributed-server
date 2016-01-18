@@ -19,14 +19,14 @@ import scala.language.postfixOps
  *         Created 2015-12-17 at 18
  */
 class Authorization extends Service {
-  implicit val executionContext = context.dispatcher
+  implicit val ec = context.dispatcher
   implicit val timeout = Timeout(2 seconds)
 
   var accountStorage: Future[ActorRef] = context.distribute(new AccountStorage, "account-storage")
 
   def receive: Receive = {
     case Login(login, password, session) =>
-      session.mapStateToFuture {
+      session.mapStateFuture {
         case Some(l: NotLoggedUser) =>
           auth(login, password, l)
         case Some(l: LoggedUser) => Future(l)
@@ -47,7 +47,7 @@ class Authorization extends Service {
     accountStorage.flatMap {
       case storage =>
         storage ? Get(login, password)
-    } collect {
+    } map {
       case Result(account) =>
         account
     }

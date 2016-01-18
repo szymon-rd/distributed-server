@@ -3,7 +3,8 @@ package pl.jaca.server.networking
 import java.io.IOException
 import java.net.InetSocketAddress
 
-import akka.actor.ActorRef
+import akka.actor.{ActorSystem, ActorRef}
+import akka.event.Logging
 import io.netty.channel.{Channel, ChannelHandlerContext, ChannelInboundHandlerAdapter}
 import pl.jaca.server.Session
 import pl.jaca.server.packets.InPacket
@@ -12,9 +13,11 @@ import pl.jaca.server.packets.InPacket
  * @author Jaca777
  *         Created 2015-06-12 at 16
  */
-class ChannelHandler(proxyFactory: Channel => ActorRef, server: ActorRef) extends ChannelInboundHandlerAdapter {
+class ChannelHandler(proxyFactory: Channel => ActorRef, server: ActorRef, system: ActorSystem) extends ChannelInboundHandlerAdapter {
 
   private var session: Session = null
+
+  var logging = Logging
 
   override def channelActive(ctx: ChannelHandlerContext) {
     val channel = ctx.channel()

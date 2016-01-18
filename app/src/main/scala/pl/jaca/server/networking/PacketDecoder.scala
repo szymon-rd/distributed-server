@@ -14,7 +14,7 @@ import PacketReader._
  * @author Jaca777
  *         Created 2015-06-13 at 13
  */
-class PacketDecoder(resolver: PacketResolver) extends ByteToMessageDecoder {
+class PacketDecoder(resolver: => PacketResolver) extends ByteToMessageDecoder {
 
   override def decode(ctx: ChannelHandlerContext, in: ByteBuf, out: util.List[AnyRef]) =
     if (isReadable(in)) tryToRead(ctx, in, out)

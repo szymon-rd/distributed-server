@@ -1,5 +1,7 @@
 package pl.jaca.server
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import akka.actor.ActorRef
 import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
@@ -19,6 +21,8 @@ class Session(val host: String, val port: Int, channel: Channel, val proxy: Acto
 
   private val channelID = channel.id()
 
+  private[server] val packetsQueueSize = new AtomicInteger()
+
   def write(packet: OutPacket) {
     proxy ! ForwardPacket(packet)
   }
@@ -27,7 +31,7 @@ class Session(val host: String, val port: Int, channel: Channel, val proxy: Acto
     proxy ! UpdateState(f)
   }
 
-  def mapStateToFuture(f: (Option[Any] => Future[Any])) = {
+  def mapStateFuture(f: (Option[Any] => Future[Any])) = {
     proxy ! UpdateStateFuture(f)
   }
 

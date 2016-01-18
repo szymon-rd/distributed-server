@@ -30,7 +30,7 @@ class ChannelHandlerSpec extends TestKit(ActorSystem("ChannelHandlerSpec")) with
   "ChannelHandler" should {
     "inform about new connection" in {
       val serverProbe = new TestProbe(system)
-      val channelHandler = new ChannelHandler(proxyFactory, serverProbe.ref)
+      val channelHandler = new ChannelHandler(proxyFactory, serverProbe.ref, system)
 
       channelHandler.channelActive(DummyContext)
 
@@ -42,7 +42,7 @@ class ChannelHandlerSpec extends TestKit(ActorSystem("ChannelHandlerSpec")) with
     }
     "inform about connection removal" in {
       val serverProbe = new TestProbe(system)
-      val channelHandler = new ChannelHandler(proxyFactory, serverProbe.ref)
+      val channelHandler = new ChannelHandler(proxyFactory, serverProbe.ref, system)
 
       channelHandler.channelActive(DummyContext)
       serverProbe.receiveOne(200 millis)
@@ -57,7 +57,7 @@ class ChannelHandlerSpec extends TestKit(ActorSystem("ChannelHandlerSpec")) with
     "create packets and forward them to server" in {
       val packetFactory = (s: Session) => new InPacket(321, -1, null, s)
       val serverProbe = new TestProbe(system)
-      val channelHandler = new ChannelHandler(proxyFactory, serverProbe.ref)
+      val channelHandler = new ChannelHandler(proxyFactory, serverProbe.ref, system)
 
       channelHandler.channelActive(DummyContext)
       serverProbe.receiveOne(200 millis)
