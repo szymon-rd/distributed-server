@@ -7,20 +7,21 @@ import com.typesafe.config.{Config, ConfigFactory}
  *         Created 2015-10-02 at 23
  */
 trait Configurable {
-  val appConfig = ConfigFactory.load(System.getProperty("app.config"))
-
+  lazy val appConfig = ConfigFactory.load(System.getProperty("app.config"))
 
   implicit class Configuration(config: Config) {
-    def stringAt(value: String): Option[String] = {
-      if (config.hasPath(value)) Some(config.getString(value)) else None
+    def stringAt(path: String): Option[String] = {
+      if (config.hasPath(path)) Some(config.getString(path)) else None
     }
 
-    def intAt(value: String): Option[Int] = {
-      if (config.hasPath(value)) Some(config.getInt(value)) else None
+    def intAt(path: String): Option[Int] = {
+      if (config.hasPath(path)) Some(config.getInt(path)) else None
     }
+    
 
-    def stringsAt(value: String): Option[Array[String]] = ???
-
+    def boolAt(path: String): Option[Boolean] = {
+      if (config.hasPath(path)) Some(config.getBoolean(path)) else None
+    }
   }
 
   def requireConfig(cond: Boolean, message: String) =

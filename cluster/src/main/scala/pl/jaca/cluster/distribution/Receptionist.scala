@@ -21,11 +21,11 @@ class Receptionist(strategy: SelectionStrategy) extends Actor with Register {
     case MemberUnavailable(clusterMember) => if (isRegistered(clusterMember)) clusterMember.unregister
     case ListMembers => sender ! Members(registeredMembers)
     case GetAvailableWorker =>
-      availableWorker.map(AvailableWorker).pipeTo(sender)
+      availableWorker map AvailableWorker pipeTo sender
   }
 
   def availableWorker: Future[RegisteredMember] = {
-    anyMember.map(_ => strategy(registeredMembers))
+    anyMember map (_ => strategy(registeredMembers))
   }
 }
 

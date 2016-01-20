@@ -1,28 +1,30 @@
 package pl.jaca.server
 
 import akka.actor._
-import akka.testkit.{TestKit, TestActorRef}
+import akka.testkit.{TestActorRef, TestKit}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.ServiceProviderSpec._
 import pl.jaca.server.providers.ServiceProvider
 import pl.jaca.server.service.Service
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
-import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * @author Jaca777
  *         Created 2015-12-17 at 20
  */
 class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers {
 
-  val properConfig1 = ConfigFactory.load("pl/jaca/server/conf1.conf")
-  val wrongConfig1 = ConfigFactory.load("pl/jaca/server/conf2.conf")
-  val wrongConfig2 = ConfigFactory.load("pl/jaca/server/conf3.conf")
-  val wrongConfig3 = ConfigFactory.load("pl/jaca/server/conf4.conf")
-  val wrongConfig4 = ConfigFactory.load("pl/jaca/server/conf5.conf")
+  val properConfig1 = ConfigFactory.load("server/conf1.conf")
+  val wrongConfig1 = ConfigFactory.load("server/conf2.conf")
+  val wrongConfig2 = ConfigFactory.load("server/conf3.conf")
+  val wrongConfig3 = ConfigFactory.load("server/conf4.conf")
+  val wrongConfig4 = ConfigFactory.load("server/conf5.conf")
 
+  System.setProperty("app.config", "server/distrConf.conf")
 
   def createTestActor(p: Props) = Future(TestActorRef(p))
 

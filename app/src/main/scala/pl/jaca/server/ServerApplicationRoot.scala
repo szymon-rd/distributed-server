@@ -17,7 +17,7 @@ import pl.jaca.server.providers.{EventHandlerProvider, PacketResolverProvider, S
  */
 class ServerApplicationRoot extends Application with Distribution with Configurable {
 
-  implicit val executor = context.dispatcher
+  private implicit val executor = context.dispatcher
 
   val systemConfig = context.system.settings.config
   lazy val resolverProvider = new PacketResolverProvider(appConfig)

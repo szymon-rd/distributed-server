@@ -19,11 +19,11 @@ import scala.language.postfixOps
  */
 class EventHandlerProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers {
 
-  val properConfig1 = ConfigFactory.load("pl/jaca/server/conf1.conf")
-  val wrongConfig1 = ConfigFactory.load("pl/jaca/server/conf2.conf")
-  val wrongConfig2 = ConfigFactory.load("pl/jaca/server/conf3.conf")
-  val wrongConfig3 = ConfigFactory.load("pl/jaca/server/conf4.conf")
-  val wrongConfig4 = ConfigFactory.load("pl/jaca/server/conf5.conf")
+  val properConfig1 = ConfigFactory.load("server/conf1.conf")
+  val wrongConfig1 = ConfigFactory.load("server/conf2.conf")
+  val wrongConfig2 = ConfigFactory.load("server/conf3.conf")
+  val wrongConfig3 = ConfigFactory.load("server/conf4.conf")
+  val wrongConfig4 = ConfigFactory.load("server/conf5.conf")
 
   class DummyActor extends Actor {
     override def receive: Receive = {

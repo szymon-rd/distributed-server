@@ -15,7 +15,7 @@ class SystemNode extends Actor with DistributionInitializer with Distribution {
 
   val cluster = Cluster(context.system)
   val receptionist = context.actorOf(Props(new Receptionist(PreciseSelectionStrategy)))
-  setReceptionist(receptionist)
+  initReceptionist(receptionist)
 
   override def receive: Receive = {
     case SystemNode.Launch(appFactory) =>
