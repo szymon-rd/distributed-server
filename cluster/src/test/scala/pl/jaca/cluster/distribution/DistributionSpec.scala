@@ -14,8 +14,8 @@ import pl.jaca.util.testing.CollectionMatchers
  */
 class DistributionSpec extends TestKit(ActorSystem("ReceptionistSpec")) with ImplicitSender with WordSpecLike with Matchers with ClusterTools with CollectionMatchers{
   implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
-  var member = createClusterMember(new Address("localhost", "ReceptionistSpec"))
-  val registeredMember = new RegisteredMember(member, AbsoluteLoad(0.0f))
+  var clusterMember = createClusterMember(new Address("localhost", "ReceptionistSpec"))
+  val registeredMember = new RegisteredMember(clusterMember, AbsoluteLoad(0.0f))
 
   def actorCreator(p: Props) = TestActorRef(p)
 
