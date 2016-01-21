@@ -16,21 +16,21 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 /**
- * @author Jaca777
- *         Created 2015-12-16 at 16
- */
-private[server] class ServiceProvider(config: Config, actorFactory: (Props => Future[ActorRef]))(implicit executionContext: ExecutionContext) {
+  * @author Jaca777
+  *         Created 2015-12-16 at 16
+  */
+private[server] class ServiceProvider(config: Config, actorFactory: ((Props, String) => ActorRef))(implicit executionContext: ExecutionContext) {
 
   /**
-   * Type of node value of the service dependency graph.
-   */
+    * Type of node value of the service dependency graph.
+    */
   private case class GraphElem(name: String, constr: Constructor[Service]) {
     override def toString = name
   }
 
   /**
-   * Maps service name to service class.
-   */
+    * Maps service name to service class.
+    */
   private val serviceClasses: Map[String, Class[_]] = {
     val list: Iterable[ConfigObject] = config.getObjectList(servicesPath).asScala
     (for {
@@ -59,8 +59,8 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
   }
 
   /**
-   * Maps service name to service instance.
-   */
+    * Maps service name to service instance.
+    */
   private val services: Map[String, Future[ActorRef]] = {
     val elements = (for {
       elem <- serviceClasses
@@ -73,8 +73,8 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
   }
 
   /**
-   * Creates services dependency graph.
-   */
+    * Creates services dependency graph.
+    */
   private def createGraph(elems: Seq[GraphElem]): DependencyGraph[GraphElem] = {
     def findConstructor(constructors: Seq[Constructor[Service]], diName: String) =
       constructors.find(constr => serviceClasses(diName) == constr.getDeclaringClass).get
@@ -102,8 +102,8 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
   }
 
   /**
-   * Resolves constructor
-   */
+    * Resolves constructor
+    */
   private def getConstructor(clazz: Class[_]) = {
     def isActorRef(param: Parameter): Boolean = {
       param.getType.isAssignableFrom(classOf[ActorRef])
@@ -124,8 +124,8 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
   }
 
   /**
-   * Graph collector. Calls actorFactory and accumulates futures of actor refs.
-   */
+    * Graph collector. Calls actorFactory and accumulates futures of actor refs.
+    */
   private def createService(servicesAcc: Seq[Seq[(String, Future[ActorRef])]], elem: GraphElem): Seq[(String, Future[ActorRef])] = {
     val constructor = elem.constr
     val diNames = constructor.getParameters.map(getServiceName)
@@ -135,25 +135,25 @@ private[server] class ServiceProvider(config: Config, actorFactory: (Props => Fu
     val propsFuture = future.map(params => Props(constructor.newInstance(params: _*)))
     val instance = for {
       props <- propsFuture
-      actor <- actorFactory(props)
+      actor = actorFactory(props, elem.name)
     } yield actor
     val name = elem.name
-    services :+(name, instance)
+    services :+ ((name, instance))
   }
 
   /**
-   * Resolves name of service given in Inject annotation.
-   */
+    * Resolves name of service given in Inject annotation.
+    */
   private def getServiceName(param: Parameter): String = {
     val annotation = param.getAnnotation(classOf[Inject])
     annotation.serviceName()
   }
 
   /**
-   *
-   * @param name
-   * @return
-   */
+    *
+    * @param name
+    * @return
+    */
   def getService(name: String): Option[Future[ActorRef]] = {
     services.get(name)
   }

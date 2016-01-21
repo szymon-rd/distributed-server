@@ -8,15 +8,17 @@ import pl.jaca.server.ServiceProviderSpec._
 import pl.jaca.server.providers.ServiceProvider
 import pl.jaca.server.service.Service
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 /**
  * @author Jaca777
  *         Created 2015-12-17 at 20
  */
 class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers {
+
+  implicit val ec = Implicits.global
 
   val properConfig1 = ConfigFactory.load("server/conf1.conf")
   val wrongConfig1 = ConfigFactory.load("server/conf2.conf")
@@ -26,7 +28,7 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
 
   System.setProperty("app.config", "server/distrConf.conf")
 
-  def createTestActor(p: Props) = Future(TestActorRef(p))
+  def createTestActor(p: Props, name: String) = TestActorRef(p)
 
   "ServiceProvider" must {
     "load services from config and inject dependencies" in {

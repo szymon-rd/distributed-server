@@ -4,7 +4,6 @@ import akka.actor._
 import akka.pattern._
 import akka.remote.RemoteScope
 import akka.util.Timeout
-import pl.jaca.cluster.Configurable
 import pl.jaca.cluster.distribution.Distribution._
 import pl.jaca.cluster.distribution.Receptionist.{AvailableWorker, GetAvailableWorker}
 
@@ -14,39 +13,33 @@ import scala.language.postfixOps
 import scala.reflect.ClassTag
 
 /**
- * @author Jaca777
- *         Created 2015-09-05 at 16
- */
-trait Distribution extends Configurable with Actor {
+  * @author Jaca777
+  *         Created 2015-09-05 at 16
+  */
+trait Distribution extends Actor {
   distr =>
 
-  private val lazyDistr = appConfig.boolAt("server-app.lazy-distribution").getOrElse(false)
+
   private implicit val executor = context.dispatcher
   private implicit val timeout = Timeout(10 seconds)
 
   implicit class DistributedContext(context: ActorContext) {
 
     /**
-     * Creates new actor, that can be possibly running on another cluster member.
-     * Children-parent hierarchy is not modified - created actor is a child of the distributing actor.
-     * @tparam T Type of actor.
-     * @return Future binded to distributed actor reference.
-     */
+      * Creates new actor, that can be possibly running on another cluster member.
+      * Children-parent hierarchy is not modified - created actor is a child of the distributing actor.
+      *
+      * @tparam T Type of actor.
+      * @return Future binded to distributed actor reference.
+      */
 
-    def distribute[T <: Distributable with Actor : ClassTag](creator: => T, name: String): DistrActorRef =
+    def distribute[T <: Distributable with Actor : ClassTag](creator: => T, name: String): ActorRef =
       distr.distribute(Props(creator), name, (p: Props, name: String) => context.actorOf(p, name))
 
-    def distribute[T <: Distributable with Actor : ClassTag](creator: => T): DistrActorRef =
-      distr.distribute(Props(creator), (p: Props) => context.actorOf(p))
-
-    def distribute[T <: Distributable with Actor : ClassTag](props: Props): DistrActorRef =
-      distr.distribute(props, (p: Props) => context.actorOf(p))
-
-    def distribute[T <: Distributable with Actor : ClassTag](props: Props, name: String): DistrActorRef =
+    def distribute[T <: Distributable with Actor : ClassTag](props: Props, name: String): ActorRef =
       distr.distribute(props, name, (p: Props, name: String) => context.actorOf(p, name))
 
   }
-
 
   private[cluster] def distributeProps[T <: Distributable with Actor : ClassTag](p: Props): Future[Props] = {
     val availableWorker = (receptionist ? GetAvailableWorker).mapTo[AvailableWorker] map (_.worker)
@@ -55,16 +48,13 @@ trait Distribution extends Configurable with Actor {
     props
   }
 
-
-  def distribute[T <: Distributable with Actor : ClassTag](props: Props, actorCreator: Props => ActorRef): DistrActorRef = {
-    val distributedProps = distributeProps(props)
-    new LazyActorRef(distributedProps.map(props => actorCreator(props)), !lazyDistr)
-  }
-
   def distribute[T <: Distributable with Actor : ClassTag](props: Props, name: String,
-                                                           actorCreator: (Props, String) => ActorRef): DistrActorRef = {
+                                                           actorCreator: (Props, String) => ActorRef): ActorRef = {
     val distributedProps = distributeProps(props)
-    new LazyActorRef(distributedProps.map(props => actorCreator(props, name)), !lazyDistr)
+    actorCreator(
+      Props(new DistributedActorProxy(distributedProps.map(props => actorCreator(props, name)))),
+      s"$name-proxy"
+    )
   }
 
   type DistrActorRef = Future[ActorRef]

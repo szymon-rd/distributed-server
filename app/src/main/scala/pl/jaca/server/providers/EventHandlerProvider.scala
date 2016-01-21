@@ -1,21 +1,22 @@
 package pl.jaca.server.providers
 
-import java.lang.reflect.{Modifier, Constructor}
+import java.lang.reflect.{Constructor, Modifier}
+import java.util.concurrent.atomic.AtomicInteger
 
-import akka.actor.{Props, Actor, ActorRef}
+import akka.actor.{Actor, ActorRef, Props}
 import com.typesafe.config.Config
-import pl.jaca.server.{Inject, ServerConfigException}
 import pl.jaca.server.eventhandling.EventActor
 import pl.jaca.server.providers.EventHandlerProvider._
+import pl.jaca.server.{Inject, ServerConfigException}
 import pl.jaca.util.futures.FutureConversions
 
-import scala.concurrent.{Promise, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
- * @author Jaca777
- *         Created 2015-12-16 at 16
- */
-private[server] class EventHandlerProvider(config: Config, services: ServiceProvider, handlerFactory: (Props => Future[ActorRef]))(implicit executor: ExecutionContext) {
+  * @author Jaca777
+  *         Created 2015-12-16 at 16
+  */
+private[server] class EventHandlerProvider(config: Config, services: ServiceProvider, handlerFactory: ((Props, String) => ActorRef))(implicit executor: ExecutionContext) {
   private val handlersEntry = config.getStringList(handlersPath).toArray.map(_.asInstanceOf[String])
 
   private val actorsFactories = handlersEntry.map {
@@ -31,8 +32,8 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   }
 
   /**
-   * Creates EventActor factory (of type Future[() => EventActor]). Resolves class using its classloader.
-   */
+    * Creates EventActor factory (of type Future[() => EventActor]). Resolves class using its classloader.
+    */
   private def createFactory(className: String): Future[() => EventActor] = {
     val classLoader: ClassLoader = this.getClass.getClassLoader
     val clazz = classLoader.loadClass(className)
@@ -44,8 +45,8 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   }
 
   /**
-   * Checks whether event handler class has allowed format, i.e. is subtype of EventActor and is not an abstract class.
-   */
+    * Checks whether event handler class has allowed format, i.e. is subtype of EventActor and is not an abstract class.
+    */
   private def checkClass(clazz: Class[_]): Unit = {
     if (!classOf[Actor].isAssignableFrom(clazz))
       throw new ServerConfigException(s"${clazz.getName} is not type of EventActor.")
@@ -54,8 +55,8 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   }
 
   /**
-   * Creates new instance of EventActor factory with given constructor.
-   */
+    * Creates new instance of EventActor factory with given constructor.
+    */
   private def newFactory(constructor: Constructor[_]): Future[(() => EventActor)] = {
     val names = getServicesNames(constructor)
     val servicesFuture = resolveServices(names)
@@ -63,8 +64,8 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   }
 
   /**
-   * Returns service names from constructor parameters annotations.
-   */
+    * Returns service names from constructor parameters annotations.
+    */
   private def getServicesNames(constructor: Constructor[_]): Array[String] = {
     val params = constructor.getParameters
     val annotations = params.map(_.getAnnotation(classOf[Inject]))
@@ -72,8 +73,8 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   }
 
   /**
-   * Resolves services with given names.
-   */
+    * Resolves services with given names.
+    */
   private def resolveServices(names: Array[String]): Future[List[ActorRef]] = {
     val options = names.map(name => (name, services.getService(name)))
     val unknownServices = options.filter(_._2.isEmpty).map(_._1)
@@ -87,23 +88,19 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
 
 
   /**
-   * @return Event actors loaded from config as lazy values.
-   */
+    * @return Event actors loaded from config as lazy values.
+    */
   def getEventActors: Future[List[ActorRef]] = {
-    val future = FutureConversions.all(actorsFactories.toList).map(createHandlers)
-    val listPromise = Promise[List[ActorRef]]()
-    future.onSuccess {
-      case list =>
-        val inverted = FutureConversions.all(list)
-        inverted.foreach(l => listPromise.success(l))
-    }
-    listPromise.future
+   FutureConversions.all(actorsFactories.toList).map(createHandlers)
   }
 
+  private val handlerCounter = new AtomicInteger()
+
   /**
-   * Creates a handler.
-   */
-  private def createHandlers(list: List[() => EventActor]) = list.map(f => handlerFactory(Props(f())))
+    * Creates a handler.
+    */
+  private def createHandlers(list: List[() => EventActor]) = list.map(f => handlerFactory(Props(f()),
+    s"handler-${handlerCounter.getAndIncrement()}"))
 }
 
 object EventHandlerProvider {

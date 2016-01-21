@@ -34,9 +34,9 @@ class EventHandlerProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec"
   val actorA = TestActorRef(new DummyActor)
   val actorB = TestActorRef(new DummyActor)
   
-  def createHandler(p: Props) = Future(TestActorRef(p))
+  def createHandler(p: Props, name: String) = TestActorRef(p)
 
-  object DummyServiceProvider extends ServiceProvider(properConfig1, _ => Future(null)) {
+  object DummyServiceProvider extends ServiceProvider(properConfig1, (_, _) => null) {
 
     override def getService(name: String): Option[Future[ActorRef]] = name match {
       case "serviceA" => Some(Future(actorA))

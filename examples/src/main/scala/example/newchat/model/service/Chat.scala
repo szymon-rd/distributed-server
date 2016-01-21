@@ -19,6 +19,7 @@ import scala.language.postfixOps
  *         Created 2015-12-17 at 18
  */
 class Chat extends Service {
+
   implicit val executionContext = context.dispatcher
   implicit val timeout = Timeout(2 seconds)
 
@@ -52,8 +53,7 @@ class Chat extends Service {
 
   def getChatroom(name: String) = {
     for {
-      storage <- chatroomStorage
-      result <- storage ? ChatroomStorage.Get(name)
+      result <- chatroomStorage ? ChatroomStorage.Get(name)
     } yield {
       result.asInstanceOf[Result].chatroom
     }
