@@ -1,5 +1,7 @@
 package pl.jaca.server
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import akka.actor.{ActorLogging, ActorRef, Props}
 import pl.jaca.cluster.Application.Launch
 import pl.jaca.cluster.distribution.Distribution
@@ -47,7 +49,7 @@ class ServerApplicationRoot extends Application with Distribution with Configura
     val resolver = resolverProvider.getResolver
     val handlersFuture = handlerProvider.getEventActors
     handlersFuture.onFailure {
-      case error => log.error("Error occurred on handler creation.", error)
+      case error => log.error(error, "Error occurred on handler creation.")
     }
     val server = context.actorOf(Props(new Server(port, resolver)))
     for {
@@ -61,9 +63,10 @@ class ServerApplicationRoot extends Application with Distribution with Configura
   def getPort: Int =
     systemConfig.intAt("server-app.port").getOrElse(ServerApplicationRoot.defaultPort)
 
-  def createService(p: Props, name: String) = context.distribute(p, name)
+  //HOTFIX
+  val serviceid = new AtomicInteger()
+  def createService(p: Props, name: String) = context.distribute(p, name + s"service-${serviceid.incrementAndGet()}")
 
-  //Ignore auto-generated name.
   def createHandler(p: Props, name: String) = {
     context.distribute(p, name)
   }

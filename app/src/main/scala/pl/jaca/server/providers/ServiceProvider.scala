@@ -139,7 +139,7 @@ private[server] class ServiceProvider(config: Config, actorFactory: ((Props, Str
       actor = actorFactory(props, elem.name)
     } yield actor
     instance.onFailure {
-      case error => log.error("Error occured on service creation.", error)
+      case error => log.error(error, "Error occured on service creation.")
     }
     val name = elem.name
     services :+ ((name, instance))

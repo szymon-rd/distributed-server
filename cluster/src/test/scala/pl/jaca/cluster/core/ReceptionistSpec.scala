@@ -6,8 +6,8 @@ import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.cluster.core.Listener._
-import pl.jaca.cluster.distribution.{AbsoluteLoad, Receptionist}
 import pl.jaca.cluster.distribution.Receptionist._
+import pl.jaca.cluster.distribution.{AbsoluteLoad, Receptionist}
 import pl.jaca.cluster.testing.ClusterTools
 import pl.jaca.util.testing.CollectionMatchers
 
@@ -21,6 +21,7 @@ import scala.language.postfixOps
  */
 class ReceptionistSpec extends TestKit(ActorSystem("ReceptionistSpec")) with ImplicitSender with WordSpecLike with Matchers with ClusterTools with CollectionMatchers {
   implicit val timeout = Timeout(2 seconds)
+
 
 
   "Receptionist actor" must {

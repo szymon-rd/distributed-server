@@ -2,7 +2,7 @@ name := "server-app"
 
 organization := "pl.jaca"
 
-version := "1.2"
+version := "1.2.3"
 
 scalaVersion := "2.11.7"
 

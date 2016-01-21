@@ -1,6 +1,7 @@
 package pl.jaca.server
 
 import akka.actor._
+import akka.event.Logging
 import akka.testkit.{TestActorRef, TestKit}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
@@ -19,6 +20,7 @@ import scala.language.postfixOps
 class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers {
 
   implicit val ec = Implicits.global
+
 
   val properConfig1 = ConfigFactory.load("server/conf1.conf")
   val wrongConfig1 = ConfigFactory.load("server/conf2.conf")
