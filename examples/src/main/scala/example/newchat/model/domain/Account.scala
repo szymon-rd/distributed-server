@@ -7,9 +7,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 /**
- * @author Jaca777
- *         Created 2015-12-25 at 14
- */
+  * @author Jaca777
+  *         Created 2015-12-25 at 14
+  */
 case class Account(name: String, password: String)
 
 class AccountTable(tag: Tag) extends Table[Account](tag, "accounts") {
@@ -21,6 +21,7 @@ class AccountTable(tag: Tag) extends Table[Account](tag, "accounts") {
 }
 
 object AccountDAO {
+
   import DbAccessor._
 
   private val users = TableQuery[AccountTable]
@@ -28,9 +29,9 @@ object AccountDAO {
   def all(): Future[Seq[Account]] = Db.run(users.result)
 
   private def get(name: String)(implicit ec: ExecutionContext): Future[Seq[Account]] = {
-    Db.run({
-     users.filter(_.name === name).result
-    })
+    Db.run {
+      users.filter(_.name === name).result
+    }
   }
 
   def forName(name: String)(implicit ec: ExecutionContext): Future[Option[Account]] = get(name).map {

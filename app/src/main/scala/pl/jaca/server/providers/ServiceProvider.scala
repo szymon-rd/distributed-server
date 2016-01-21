@@ -4,6 +4,7 @@ import java.lang.reflect.{Constructor, Modifier, Parameter}
 import java.util.Map.Entry
 
 import akka.actor.{ActorRef, Props}
+import akka.event.LoggingAdapter
 import com.typesafe.config.{Config, ConfigObject, ConfigValue}
 import pl.jaca.server.providers.ServiceProvider._
 import pl.jaca.server.service.Service
@@ -19,7 +20,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * @author Jaca777
   *         Created 2015-12-16 at 16
   */
-private[server] class ServiceProvider(config: Config, actorFactory: ((Props, String) => ActorRef))(implicit executionContext: ExecutionContext) {
+private[server] class ServiceProvider(config: Config, actorFactory: ((Props, String) => ActorRef), log: LoggingAdapter)(implicit executionContext: ExecutionContext) {
 
   /**
     * Type of node value of the service dependency graph.
@@ -137,6 +138,9 @@ private[server] class ServiceProvider(config: Config, actorFactory: ((Props, Str
       props <- propsFuture
       actor = actorFactory(props, elem.name)
     } yield actor
+    instance.onFailure {
+      case error => log.error("Error occured on service creation.", error)
+    }
     val name = elem.name
     services :+ ((name, instance))
   }

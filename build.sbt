@@ -2,11 +2,13 @@ name := "distributed-server"
 
 organization := "pl.jaca"
 
-version := "1.0.1"
+version := "1.2"
 
 scalaVersion := "2.11.7"
 
 scalaBinaryVersion := CrossVersion.binaryScalaVersion("2.11.7")
+
+crossPaths := false
 
 
 lazy val commonDependencies = Seq(

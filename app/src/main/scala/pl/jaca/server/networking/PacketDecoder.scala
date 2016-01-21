@@ -1,14 +1,12 @@
 package pl.jaca.server.networking
 
-import java.net.SocketAddress
 import java.util
 
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.ByteToMessageDecoder
-import io.netty.util.AttributeKey
-import pl.jaca.server.{Session, Session$}
-import PacketReader._
+import pl.jaca.server.Session
+import pl.jaca.server.networking.PacketReader._
 
 /**
  * @author Jaca777

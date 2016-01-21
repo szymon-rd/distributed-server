@@ -1,6 +1,6 @@
 package pl.jaca.server
 
-import akka.actor.{ActorRef, Props}
+import akka.actor.{ActorLogging, ActorRef, Props}
 import pl.jaca.cluster.Application.Launch
 import pl.jaca.cluster.distribution.Distribution
 import pl.jaca.cluster.{Application, Configurable, SystemNode}
@@ -10,29 +10,29 @@ import pl.jaca.server.networking.Server.Subscribe
 import pl.jaca.server.providers.{EventHandlerProvider, PacketResolverProvider, ServiceProvider}
 
 /**
- * @author Jaca777
- *         Created 2015-06-15 at 21
- * ServerApplicationRoot is responsible for constructing and launching server. Creates services and handlers.
- *    
- */
-class ServerApplicationRoot extends Application with Distribution with Configurable {
+  * @author Jaca777
+  *         Created 2015-06-15 at 21
+  *         ServerApplicationRoot is responsible for constructing and launching server. Creates services and handlers.
+  *
+  */
+class ServerApplicationRoot extends Application with Distribution with Configurable with ActorLogging {
 
   private implicit val executor = context.dispatcher
 
   val systemConfig = context.system.settings.config
   lazy val resolverProvider = new PacketResolverProvider(appConfig)
-  lazy val serviceProvider = new ServiceProvider(appConfig, createService)
+  lazy val serviceProvider = new ServiceProvider(appConfig, createService, log)
   lazy val handlerProvider = new EventHandlerProvider(appConfig, serviceProvider, createHandler)
-  
+
   /**
-   * Awaiting command to launch.
-   */
+    * Awaiting command to launch.
+    */
   override def receive: Receive = {
     case Launch =>
       val server = launchServer()
       context become running(server)
   }
-  
+
   def running(server: ActorRef): Receive = {
     case Shutdown =>
       server ! Server.Stop
@@ -40,12 +40,15 @@ class ServerApplicationRoot extends Application with Distribution with Configura
   }
 
   /**
-   * Launches both server and client application.
-   */
+    * Launches both server and client application.
+    */
   def launchServer() = {
     val port = getPort
     val resolver = resolverProvider.getResolver
     val handlersFuture = handlerProvider.getEventActors
+    handlersFuture.onFailure {
+      case error => log.error("Error occurred on handler creation.", error)
+    }
     val server = context.actorOf(Props(new Server(port, resolver)))
     for {
       handlers <- handlersFuture
