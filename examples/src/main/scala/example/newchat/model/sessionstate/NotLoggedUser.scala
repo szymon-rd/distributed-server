@@ -8,7 +8,7 @@ import pl.jaca.server.Session
  * @author Jaca777
  *         Created 2015-12-24 at 01
  */
-class NotLoggedUser(session: Session) {
+class NotLoggedUser(session: Session) extends Serializable {
   def loginFailure(): NotLoggedUser = {
     session.write(LoginFailure)
     this

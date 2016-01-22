@@ -1,7 +1,6 @@
 package pl.jaca.server
 
 import akka.actor._
-import akka.event.Logging
 import akka.testkit.{TestActorRef, TestKit}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
@@ -20,7 +19,8 @@ import scala.language.postfixOps
 class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers {
 
   implicit val ec = Implicits.global
-
+  
+  val log = new DummyLoggingAdapter
 
   val properConfig1 = ConfigFactory.load("server/conf1.conf")
   val wrongConfig1 = ConfigFactory.load("server/conf2.conf")
@@ -34,7 +34,7 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
 
   "ServiceProvider" must {
     "load services from config and inject dependencies" in {
-      val serviceProvider = new ServiceProvider(properConfig1, createTestActor)
+      val serviceProvider = new ServiceProvider(properConfig1, createTestActor, log)
 
       val optionA = serviceProvider.getService("serviceA")
       optionA.isDefined should be(true)
@@ -56,22 +56,22 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
     }
     "throw exception when class is not type of service" in {
       intercept[ServerConfigException] {
-      new ServiceProvider(wrongConfig1, createTestActor)
+      new ServiceProvider(wrongConfig1, createTestActor, log)
       }.getMessage should be("pl.jaca.server.ServiceProviderSpec$NotAService is not type of Service.")
     }
     "throw exception when class is abstract" in {
       intercept[ServerConfigException] {
-      new ServiceProvider(wrongConfig2, createTestActor)
+      new ServiceProvider(wrongConfig2, createTestActor, log)
       }.getMessage should be("Service pl.jaca.server.ServiceProviderSpec$AbstractService is an abstract class.")
     }
     "throw exception when class constructor has not injectable params." in {
       intercept[ServerConfigException] {
-      new ServiceProvider(wrongConfig3, createTestActor)
+      new ServiceProvider(wrongConfig3, createTestActor, log)
       }.getMessage should be("Service pl.jaca.server.ServiceProviderSpec$NonInjectableService constructor has not injectable parameters.")
     }
     "detect cyclic dependencies" in {
       intercept[ServerConfigException] {
-      new ServiceProvider(wrongConfig4, createTestActor)
+      new ServiceProvider(wrongConfig4, createTestActor, log)
       }.getMessage should be("Cyclic dependency found: cyclicC -> cyclicA -> cyclicB -> cyclicC")
     }
   }

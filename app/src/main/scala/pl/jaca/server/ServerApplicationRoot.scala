@@ -65,7 +65,7 @@ class ServerApplicationRoot extends Application with Distribution with Configura
 
   //HOTFIX
   val serviceid = new AtomicInteger()
-  def createService(p: Props, name: String) = context.distribute(p, name + s"service-${serviceid.incrementAndGet()}")
+  def createService(p: Props, name: String) = context.distribute(p, name)
 
   def createHandler(p: Props, name: String) = {
     context.distribute(p, name)

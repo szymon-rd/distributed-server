@@ -22,7 +22,7 @@ class ChannelHandler(proxyFactory: Channel => ActorRef, server: ActorRef, system
   override def channelActive(ctx: ChannelHandlerContext) {
     val channel = ctx.channel()
     val address = channel.remoteAddress().asInstanceOf[InetSocketAddress]
-    session = new Session(address.getHostString, address.getPort, channel, proxyFactory(channel))
+    session = new Session(address.getHostString, address.getPort, channel.id(), proxyFactory(channel))
     server ! Server.EventOccurred(ServerEvent.SessionActive(session))
   }
 

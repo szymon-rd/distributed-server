@@ -25,6 +25,8 @@ class EventHandlerProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec"
   val wrongConfig3 = ConfigFactory.load("server/conf4.conf")
   val wrongConfig4 = ConfigFactory.load("server/conf5.conf")
 
+  val log = new DummyLoggingAdapter
+
   class DummyActor extends Actor {
     override def receive: Receive = {
       case _ =>
@@ -36,7 +38,7 @@ class EventHandlerProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec"
   
   def createHandler(p: Props, name: String) = TestActorRef(p)
 
-  object DummyServiceProvider extends ServiceProvider(properConfig1, (_, _) => null) {
+  object DummyServiceProvider extends ServiceProvider(properConfig1, (_, _) => null, log) {
 
     override def getService(name: String): Option[Future[ActorRef]] = name match {
       case "serviceA" => Some(Future(actorA))
