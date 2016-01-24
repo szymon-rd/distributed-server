@@ -1,7 +1,5 @@
 package pl.jaca.server
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import akka.actor.{ActorLogging, ActorRef, Props}
 import pl.jaca.cluster.Application.Launch
 import pl.jaca.cluster.distribution.Distribution
@@ -22,9 +20,9 @@ class ServerApplicationRoot extends Application with Distribution with Configura
   private implicit val executor = context.dispatcher
 
   val systemConfig = context.system.settings.config
-  lazy val resolverProvider = new PacketResolverProvider(appConfig)
-  lazy val serviceProvider = new ServiceProvider(appConfig, createService, log)
-  lazy val handlerProvider = new EventHandlerProvider(appConfig, serviceProvider, createHandler)
+  val resolverProvider = new PacketResolverProvider(appConfig)
+  val serviceProvider = new ServiceProvider(appConfig, createService, log)
+  val handlerProvider = new EventHandlerProvider(appConfig, serviceProvider, createHandler)
 
   /**
     * Awaiting command to launch.
@@ -59,8 +57,6 @@ class ServerApplicationRoot extends Application with Distribution with Configura
   def getPort: Int =
     systemConfig.intAt("server-app.port").getOrElse(ServerApplicationRoot.defaultPort)
 
-  //HOTFIX
-  val serviceid = new AtomicInteger()
   def createService(p: Props, name: String) = context.distribute(p, name)
 
   def createHandler(p: Props, name: String) = {

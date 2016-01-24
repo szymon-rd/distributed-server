@@ -137,12 +137,12 @@ private[server] class ServiceProvider(config: Config, actorFactory: ((Props, Str
       param.getType.isAssignableFrom(classOf[ActorRef])
     }
 
-    def isDIDefined(param: Parameter): Boolean = {
+    def isInjectDefined(param: Parameter): Boolean = {
       param.getAnnotations.exists(_.isInstanceOf[Inject])
     }
 
     def isInjectable(c: Constructor[_]): Boolean = {
-      c.getParameters.forall(param => isActorRef(param) && isDIDefined(param))
+      c.getParameters.forall(param => isActorRef(param) && isInjectDefined(param))
     }
     val constructors = clazz.getConstructors
     val constructor = constructors.find(isInjectable)

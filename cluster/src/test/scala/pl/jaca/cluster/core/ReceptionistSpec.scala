@@ -9,7 +9,6 @@ import pl.jaca.cluster.core.Listener._
 import pl.jaca.cluster.distribution.Receptionist._
 import pl.jaca.cluster.distribution.{AbsoluteLoad, Receptionist}
 import pl.jaca.cluster.testing.ClusterTools
-import pl.jaca.util.testing.CollectionMatchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -19,7 +18,7 @@ import scala.language.postfixOps
  * @author Jaca777
  *         Created 2015-09-06 at 13
  */
-class ReceptionistSpec extends TestKit(ActorSystem("ReceptionistSpec")) with ImplicitSender with WordSpecLike with Matchers with ClusterTools with CollectionMatchers {
+class ReceptionistSpec extends TestKit(ActorSystem("ReceptionistSpec")) with ImplicitSender with WordSpecLike with Matchers with ClusterTools {
   implicit val timeout = Timeout(2 seconds)
 
 
@@ -36,7 +35,7 @@ class ReceptionistSpec extends TestKit(ActorSystem("ReceptionistSpec")) with Imp
       receptionist ! MemberAvailable(member3)
 
       val members = Await.result(receptionist ? ListMembers, timeout.duration).asInstanceOf[Members].members.toList
-      members.map(_.clusterMember) should containOnly(member1, member2, member3)
+      members.map(_.clusterMember) should contain theSameElementsAs List(member1, member2, member3)
     }
 
     "remove unavailable members" in {

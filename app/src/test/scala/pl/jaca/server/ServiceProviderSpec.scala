@@ -7,7 +7,6 @@ import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.ServiceProviderSpec._
 import pl.jaca.server.providers.ServiceProvider
 import pl.jaca.server.service.Service
-import pl.jaca.util.testing.CollectionMatchers
 
 import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.duration._
@@ -17,8 +16,7 @@ import scala.language.postfixOps
   * @author Jaca777
   *         Created 2015-12-17 at 20
   */
-class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers
-  with CollectionMatchers {
+class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers {
 
   implicit val ec = Implicits.global
 

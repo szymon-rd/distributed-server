@@ -1,6 +1,6 @@
 package pl.jaca.cluster.distribution
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.actor.{Actor, ActorLogging, Props}
 import pl.jaca.cluster.Configurable
 
 import scala.concurrent.Future
@@ -11,32 +11,36 @@ import scala.concurrent.Future
   *         Proxy between distributor and distributed actor.
   *         Allows lazy evaluation of distributed actor.
   */
-class DistributedActorProxy(actorRef: => Future[ActorRef]) extends Actor with Configurable with ActorLogging {
+class DistributedActorProxy(props: Future[Props]) extends Actor with Configurable with ActorLogging {
 
   implicit val ec = context.dispatcher
 
-  val lazyDistr = appConfig.boolAt("server-app.distribution.lazy").getOrElse(false)
   val retry = appConfig.boolAt("server-app.distribution.retry").getOrElse(true)
+  val lazyDistr = appConfig.boolAt("server-app.distribution.lazy").getOrElse(false)
 
-  if (!lazyDistr) evalRef
-
-  lazy val evalRef = {
-    actorRef onFailure {
-      case e =>
-        log.error(e, "Error occurred on distributing actor")
+  lazy val futureRef = {
+    val targetRef = props.map {
+      context.actorOf(_, "target")
+    }
+    props.onFailure {
+      case error =>
+        log.error(error, "Error occured on actor distribution.")
         if (!retry) context become failed
     }
-    Thread.sleep(250) //await initialization
-    actorRef
+    targetRef
   }
+
+  if (!lazyDistr) futureRef
 
   override def receive: Receive = proxy
 
   def proxy(): Receive = {
     case msg =>
       val currSender = sender()
-      evalRef.foreach {
-        _.tell(msg, currSender)
+      futureRef.foreach {
+        ref =>
+          if (currSender == ref) context.parent.tell(msg, currSender)
+          else ref.tell(msg, currSender)
       }
   }
 

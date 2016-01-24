@@ -7,9 +7,7 @@ import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.networking.Event
 import pl.jaca.server.networking.ServerEvent.SessionEvent
 import pl.jaca.server.packets.InPacket
-import pl.jaca.server.testing.DummyPackets
-import DummyPackets.DummyInPacket
-import pl.jaca.util.testing.CollectionMatchers
+import pl.jaca.server.testing.DummyPackets.DummyInPacket
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -18,7 +16,7 @@ import scala.language.postfixOps
  * @author Jaca777
  *         Created 2015-09-06 at 13
  */
-class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with ImplicitSender with WordSpecLike with Matchers with CollectionMatchers {
+class EventActorSpec extends TestKit(ActorSystem("EventActorSpec")) with ImplicitSender with WordSpecLike with Matchers {
   implicit val timeout = Timeout(2 seconds)
 
   case class TestEvent1(i: Int) extends Event

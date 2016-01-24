@@ -7,13 +7,12 @@ import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.cluster.distribution.Distribution.DistributionInitializer
 import pl.jaca.cluster.distribution.Receptionist.{AvailableWorker, GetAvailableWorker}
 import pl.jaca.cluster.testing.ClusterTools
-import pl.jaca.util.testing.CollectionMatchers
 
 /**
   * @author Jaca777
   *         Created 2016-01-20 at 13
   */
-class DistributionSpec extends TestKit(ActorSystem("ReceptionistSpec")) with ImplicitSender with WordSpecLike with Matchers with ClusterTools with CollectionMatchers {
+class DistributionSpec extends TestKit(ActorSystem("ReceptionistSpec")) with ImplicitSender with WordSpecLike with Matchers with ClusterTools {
   implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
   var clusterMember = createClusterMember(new Address("localhost", "ReceptionistSpec"))
   val registeredMember = new RegisteredMember(clusterMember, AbsoluteLoad(0.0f))

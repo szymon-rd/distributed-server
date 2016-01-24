@@ -36,8 +36,10 @@ trait Distribution extends Actor {
     def distribute[T <: Distributable with Actor : ClassTag](creator: => T, name: String): ActorRef =
       distr.distribute(Props(creator), name, (p: Props, name: String) => context.actorOf(p, name))
 
-    def distribute[T <: Distributable with Actor : ClassTag](props: Props, name: String): ActorRef =
+
+    def distribute[T <: Distributable with Actor : ClassTag](props: Props, name: String): ActorRef = {
       distr.distribute(props, name, (p: Props, name: String) => context.actorOf(p, name))
+    }
 
   }
 
@@ -52,8 +54,8 @@ trait Distribution extends Actor {
                                                            actorCreator: (Props, String) => ActorRef): ActorRef = {
     val distributedProps = distributeProps(props)
     actorCreator(
-      Props(new DistributedActorProxy(distributedProps.map(props => actorCreator(props, name)))),
-      s"$name-proxy"
+      Props(new DistributedActorProxy(distributedProps)),
+      name
     )
   }
 
