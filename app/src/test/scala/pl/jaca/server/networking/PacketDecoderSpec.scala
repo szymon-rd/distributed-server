@@ -43,7 +43,7 @@ class PacketDecoderSpec extends TestKit(ActorSystem("PacketDecoderSpec")) with I
       val decoder = new PacketDecoder(TestPacketResolver)
       val out = new util.ArrayList[AnyRef]()
 
-      decoder.decode(dummyContext, packetBuf, out)
+      for(_ <- 1 to 3)decoder.decode(dummyContext, packetBuf, out)
       val packetFactory = out.get(0).asInstanceOf[(Session => InPacket)]
       val packet = packetFactory(dummyConnection)
 

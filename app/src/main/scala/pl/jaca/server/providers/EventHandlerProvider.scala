@@ -8,9 +8,8 @@ import com.typesafe.config.Config
 import pl.jaca.server.eventhandling.EventActor
 import pl.jaca.server.providers.EventHandlerProvider._
 import pl.jaca.server.{Inject, ServerConfigException}
-import pl.jaca.util.futures.FutureConversions
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 /**
   * @author Jaca777
@@ -34,7 +33,7 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   /**
     * Creates EventActor factory (of type Future[() => EventActor]). Resolves class using its classloader.
     */
-  private def createFactory(className: String): Future[() => EventActor] = {
+  private def createFactory(className: String): () => EventActor = {
     val classLoader: ClassLoader = this.getClass.getClassLoader
     val clazz = classLoader.loadClass(className)
     checkClass(clazz)
@@ -57,10 +56,10 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   /**
     * Creates new instance of EventActor factory with given constructor.
     */
-  private def newFactory(constructor: Constructor[_]): Future[(() => EventActor)] = {
+  private def newFactory(constructor: Constructor[_]): (() => EventActor) = {
     val names = getServicesNames(constructor)
-    val servicesFuture = resolveServices(names)
-    servicesFuture.map(services => () => constructor.newInstance(services: _*).asInstanceOf[EventActor])
+    val services = resolveServices(names)
+    () => constructor.newInstance(services: _*).asInstanceOf[EventActor]
   }
 
   /**
@@ -75,10 +74,10 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   /**
     * Resolves services with given names.
     */
-  private def resolveServices(names: Array[String]): Future[List[ActorRef]] = {
+  private def resolveServices(names: Array[String]): List[ActorRef] = {
     val options = names.map(name => (name, services.getService(name)))
     val unknownServices = options.filter(_._2.isEmpty).map(_._1)
-    if (unknownServices.isEmpty) FutureConversions.all(options.map(_._2.get).toList)
+    if (unknownServices.isEmpty) options.map(_._2.get).toList
     else reportUnresolvedServices(unknownServices)
   }
 
@@ -90,8 +89,8 @@ private[server] class EventHandlerProvider(config: Config, services: ServiceProv
   /**
     * @return Event actors loaded from config as lazy values.
     */
-  def getEventActors: Future[List[ActorRef]] = {
-   FutureConversions.all(actorsFactories.toList).map(createHandlers)
+  lazy val eventActors: List[ActorRef] = {
+   createHandlers(actorsFactories.toList)
   }
 
   private val handlerCounter = new AtomicInteger()

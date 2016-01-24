@@ -7,19 +7,21 @@ import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.ServiceProviderSpec._
 import pl.jaca.server.providers.ServiceProvider
 import pl.jaca.server.service.Service
+import pl.jaca.util.testing.CollectionMatchers
 
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.duration._
 import scala.language.postfixOps
+
 /**
- * @author Jaca777
- *         Created 2015-12-17 at 20
- */
-class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers {
+  * @author Jaca777
+  *         Created 2015-12-17 at 20
+  */
+class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers
+  with CollectionMatchers {
 
   implicit val ec = Implicits.global
-  
+
   val log = new DummyLoggingAdapter
 
   val properConfig1 = ConfigFactory.load("server/conf1.conf")
@@ -30,7 +32,12 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
 
   System.setProperty("app.config", "server/distrConf.conf")
 
-  def createTestActor(p: Props, name: String) = TestActorRef(p)
+  var actors: List[String] = List.empty
+
+  def createTestActor(p: Props, name: String) = {
+    actors ::= name
+    TestActorRef(p)
+  }
 
   "ServiceProvider" must {
     "load services from config and inject dependencies" in {
@@ -38,7 +45,7 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
 
       val optionA = serviceProvider.getService("serviceA")
       optionA.isDefined should be(true)
-      val serviceA = Await.result(optionA.get, 200 millis).asInstanceOf[TestActorRef[Service]].underlyingActor
+      val serviceA = optionA.get.asInstanceOf[TestActorRef[Service]].underlyingActor
       serviceA shouldBe a[ServiceA]
       val castedA = serviceA.asInstanceOf[ServiceA]
       castedA.service1 shouldNot be(null)
@@ -46,32 +53,40 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
 
       val optionF = serviceProvider.getService("serviceG")
       optionF.isDefined should be(true)
-      val serviceF = Await.result(optionF.get, 200 millis).asInstanceOf[TestActorRef[Service]].underlyingActor
+      val serviceF = optionF.get.asInstanceOf[TestActorRef[Service]].underlyingActor
       serviceF shouldBe a[ServiceG]
 
       val optionUnc = serviceProvider.getService("uncB")
       optionUnc.isDefined should be(true)
-      val uncB = Await.result(optionUnc.get, 200 millis).asInstanceOf[TestActorRef[Service]].underlyingActor
+      val uncB = optionUnc.get.asInstanceOf[TestActorRef[Service]].underlyingActor
       uncB shouldBe a[UnconnectedServiceB]
+    }
+    "Create only one actor of each service" in {
+      actors = List.empty
+      val serviceProvider = new ServiceProvider(properConfig1, createTestActor, log)
+      within(100 millis) {
+        actors should contain theSameElementsAs (List("serviceA", "serviceB", "serviceC", "serviceD",
+          "serviceE", "serviceF", "serviceG", "uncA", "uncB"))
+      }
     }
     "throw exception when class is not type of service" in {
       intercept[ServerConfigException] {
-      new ServiceProvider(wrongConfig1, createTestActor, log)
+        new ServiceProvider(wrongConfig1, createTestActor, log)
       }.getMessage should be("pl.jaca.server.ServiceProviderSpec$NotAService is not type of Service.")
     }
     "throw exception when class is abstract" in {
       intercept[ServerConfigException] {
-      new ServiceProvider(wrongConfig2, createTestActor, log)
+        new ServiceProvider(wrongConfig2, createTestActor, log)
       }.getMessage should be("Service pl.jaca.server.ServiceProviderSpec$AbstractService is an abstract class.")
     }
     "throw exception when class constructor has not injectable params." in {
       intercept[ServerConfigException] {
-      new ServiceProvider(wrongConfig3, createTestActor, log)
+        new ServiceProvider(wrongConfig3, createTestActor, log)
       }.getMessage should be("Service pl.jaca.server.ServiceProviderSpec$NonInjectableService constructor has not injectable parameters.")
     }
     "detect cyclic dependencies" in {
       intercept[ServerConfigException] {
-      new ServiceProvider(wrongConfig4, createTestActor, log)
+        new ServiceProvider(wrongConfig4, createTestActor, log)
       }.getMessage should be("Cyclic dependency found: cyclicC -> cyclicA -> cyclicB -> cyclicC")
     }
   }
@@ -109,13 +124,13 @@ object ServiceProviderSpec {
     }
   }
 
-  class ServiceD extends Service {
+  class ServiceD(@Inject(serviceName = "serviceB") val service1: ActorRef) extends Service {
     override def receive: Actor.Receive = {
       case _ =>
     }
   }
 
-  class ServiceE extends Service {
+  class ServiceE(@Inject(serviceName = "serviceB") val service1: ActorRef) extends Service {
     override def receive: Actor.Receive = {
       case _ =>
     }

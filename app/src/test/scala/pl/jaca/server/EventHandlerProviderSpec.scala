@@ -1,15 +1,14 @@
 package pl.jaca.server
 
-import akka.actor.{Props, ActorSystem, Actor, ActorRef}
-import akka.testkit.{TestKit, TestActorRef}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.testkit.{TestActorRef, TestKit}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.EventHandlerProviderSpec.HandlerA
 import pl.jaca.server.eventhandling.EventActor
 import pl.jaca.server.providers.{EventHandlerProvider, ServiceProvider}
 import pl.jaca.server.service.Service
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.language.postfixOps
 
@@ -40,17 +39,16 @@ class EventHandlerProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec"
 
   object DummyServiceProvider extends ServiceProvider(properConfig1, (_, _) => null, log) {
 
-    override def getService(name: String): Option[Future[ActorRef]] = name match {
-      case "serviceA" => Some(Future(actorA))
-      case "serviceB" => Some(Future(actorB))
+    override def getService(name: String): Option[ActorRef] = name match {
+      case "serviceA" => Some(actorA)
+      case "serviceB" => Some(actorB)
     }
   }
 
   "EventHandlerProvider" must {
     "load handlers from config" in {
       val eventHandlerProvider = new EventHandlerProvider(properConfig1, DummyServiceProvider, createHandler)
-      val handlersFuture = eventHandlerProvider.getEventActors
-      val handlers = Await.result(handlersFuture, 200 millis)
+      val handlers = eventHandlerProvider.eventActors
       val actors = handlers.map(_.asInstanceOf[TestActorRef[_]]).map(_.underlyingActor)
       val handlerA = actors.find(_.isInstanceOf[HandlerA]).get.asInstanceOf[HandlerA]
       handlerA.serviceA should be(actorA)

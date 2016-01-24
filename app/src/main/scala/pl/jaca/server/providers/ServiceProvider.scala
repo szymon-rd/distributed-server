@@ -9,11 +9,10 @@ import com.typesafe.config.{Config, ConfigObject, ConfigValue}
 import pl.jaca.server.providers.ServiceProvider._
 import pl.jaca.server.service.Service
 import pl.jaca.server.{Inject, ServerConfigException}
-import pl.jaca.util.futures.FutureConversions
-import pl.jaca.util.graph.{DependencyGraph, GraphException}
+import pl.jaca.util.graph.{Node, NodeVisitor, DirectedDependencyGraph, GraphException}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 
 /**
@@ -27,6 +26,34 @@ private[server] class ServiceProvider(config: Config, actorFactory: ((Props, Str
     */
   private case class GraphElem(name: String, constr: Constructor[Service]) {
     override def toString = name
+  }
+
+  private class ServiceNodeVisitor extends NodeVisitor[GraphElem] {
+    var services = Map[String, ActorRef]()
+
+    override def visitNode(node: Node[GraphElem]): Unit = {
+      val elem = node.value
+      if(!services.isDefinedAt(elem.name)) {
+        val ref = createActor(elem.constr, elem.name)
+        services += (elem.name -> ref)
+      }
+    }
+
+    private def createActor(constr: Constructor[Service], serviceName: String): ActorRef = {
+      val dependencies = resolveDependencies(constr, serviceName)
+      actorFactory(Props(constr.newInstance(dependencies: _*)), serviceName)
+    }
+
+    private def resolveDependencies(constr: Constructor[Service], serviceName: String): Array[ActorRef] = {
+      val params = constr.getParameters
+      val dependenciesNames = params.map(getServiceName)
+      val dependencies = dependenciesNames.map(services.get)
+      dependencies.map {
+        case Some(service) => service
+        case None =>
+          sys.error(s"Unable to resolve dependency for service $serviceName")
+      }
+    }
   }
 
   /**
@@ -62,7 +89,7 @@ private[server] class ServiceProvider(config: Config, actorFactory: ((Props, Str
   /**
     * Maps service name to service instance.
     */
-  private val services: Map[String, Future[ActorRef]] = {
+  private val services: Map[String, ActorRef] = {
     val elements = (for {
       elem <- serviceClasses
       clazz = elem._2
@@ -70,26 +97,26 @@ private[server] class ServiceProvider(config: Config, actorFactory: ((Props, Str
       constructor = getConstructor(clazz)
     } yield GraphElem(name, constructor)).toSeq
     val graph = createGraph(elements)
-    graph.reduceEachRoot[Seq[(String, Future[ActorRef])]](createService).flatten.toMap
+    val visitor = new ServiceNodeVisitor
+    graph.accept(visitor)
+    visitor.services
   }
 
   /**
     * Creates services dependency graph.
     */
-  private def createGraph(elems: Seq[GraphElem]): DependencyGraph[GraphElem] = {
+  private def createGraph(elems: Seq[GraphElem]): DirectedDependencyGraph[GraphElem] = {
     def findConstructor(constructors: Seq[Constructor[Service]], diName: String) =
       constructors.find(constr => serviceClasses(diName) == constr.getDeclaringClass).get
     val constructors = elems.map(_.constr)
     val connections = for {
       elem <- elems
-      name = elem.name
-      constr = elem.constr
-      param <- constr.getParameters
-      diName = getServiceName(param)
-      diConstr = findConstructor(constructors, diName)
-    } yield (GraphElem(name, constr), GraphElem(diName, diConstr))
+      param <- elem.constr.getParameters
+      injServiceName = getServiceName(param)
+      injServiceConstr = findConstructor(constructors, injServiceName)
+    } yield (GraphElem(elem.name, elem.constr), GraphElem(injServiceName, injServiceConstr))
     try {
-      val connectionsGraph = connections.foldLeft(z = new DependencyGraph[GraphElem]()) {
+      val connectionsGraph = connections.foldLeft(z = new DirectedDependencyGraph[GraphElem]()) {
         (graph, conn) => graph.addEdge(conn._1, conn._2)
       }
       val unconnected = elems.filter(_.constr.getParameterCount == 0)
@@ -125,27 +152,6 @@ private[server] class ServiceProvider(config: Config, actorFactory: ((Props, Str
   }
 
   /**
-    * Graph collector. Calls actorFactory and accumulates futures of actor refs.
-    */
-  private def createService(servicesAcc: Seq[Seq[(String, Future[ActorRef])]], elem: GraphElem): Seq[(String, Future[ActorRef])] = {
-    val constructor = elem.constr
-    val diNames = constructor.getParameters.map(getServiceName)
-    val services = servicesAcc.flatten
-    val diServices = diNames.map(services.toMap).toList
-    val future = FutureConversions.all(diServices)
-    val propsFuture = future.map(params => Props(constructor.newInstance(params: _*)))
-    val instance = for {
-      props <- propsFuture
-      actor = actorFactory(props, elem.name)
-    } yield actor
-    instance.onFailure {
-      case error => log.error(error, "Error occured on service creation.")
-    }
-    val name = elem.name
-    services :+ ((name, instance))
-  }
-
-  /**
     * Resolves name of service given in Inject annotation.
     */
   private def getServiceName(param: Parameter): String = {
@@ -158,7 +164,7 @@ private[server] class ServiceProvider(config: Config, actorFactory: ((Props, Str
     * @param name
     * @return
     */
-  def getService(name: String): Option[Future[ActorRef]] = {
+  def getService(name: String): Option[ActorRef] = {
     services.get(name)
   }
 }

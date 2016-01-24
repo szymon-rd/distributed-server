@@ -47,13 +47,9 @@ class ServerApplicationRoot extends Application with Distribution with Configura
   def launchServer() = {
     val port = getPort
     val resolver = resolverProvider.getResolver
-    val handlersFuture = handlerProvider.getEventActors
-    handlersFuture.onFailure {
-      case error => log.error(error, "Error occurred on handler creation.")
-    }
+    val handlers = handlerProvider.eventActors
     val server = context.actorOf(Props(new Server(port, resolver)))
     for {
-      handlers <- handlersFuture
       handler <- handlers
     } server ! Subscribe(handler)
     server

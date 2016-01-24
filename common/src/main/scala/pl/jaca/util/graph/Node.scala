@@ -1,14 +1,14 @@
 package pl.jaca.util.graph
 
 /**
- * @author Jaca777
- *         Created 2015-12-23 at 11
- */
-case class Node[V](value: V, leaves: Node[V]*) {
+  * @author Jaca777
+  *         Created 2015-12-23 at 11
+  */
+case class Node[V](value: V, connections: Node[V]*) {
 
   def collect[A](f: (Seq[A], V) => A): A = {
     def collect(toVisit: Node[V]): A = {
-      val s = toVisit.leaves.map(collect)
+      val s = toVisit.connections.map(collect)
       f(s, toVisit.value)
     }
     collect(this)
@@ -16,14 +16,19 @@ case class Node[V](value: V, leaves: Node[V]*) {
 
   def checkForCycle() = {
     def checkForCycle(toVisit: Node[V], visited: List[V]): Unit = {
-      if(visited.contains(toVisit.value)){
+      if (visited.contains(toVisit.value)) {
         val path = s"${visited.mkString(" -> ")} -> ${toVisit.value}"
         throw new GraphException("Cyclic dependency found: " + path)
       } else {
         val path = visited :+ toVisit.value
-        toVisit.leaves.foreach(leaf => checkForCycle(leaf, path))
+        toVisit.connections.foreach(leaf => checkForCycle(leaf, path))
       }
     }
     checkForCycle(this, List.empty)
+  }
+
+  def accept(visitor: NodeVisitor[V]): Unit = {
+    for (node <- connections) node.accept(visitor)
+    visitor.visitNode(this)
   }
 }
