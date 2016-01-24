@@ -22,11 +22,12 @@ class DistributedActorProxy(props: Future[Props]) extends Actor with Configurabl
     val targetRef = props.map {
       context.actorOf(_, "target")
     }
-    props.onFailure {
+    targetRef.onFailure {
       case error =>
         log.error(error, "Error occured on actor distribution.")
         if (!retry) context become failed
     }
+    Thread.sleep(250) //await initialization
     targetRef
   }
 
