@@ -18,7 +18,7 @@ case class Node[V](value: V, connections: Node[V]*) {
     def checkForCycle(toVisit: Node[V], visited: List[V]): Unit = {
       if (visited.contains(toVisit.value)) {
         val path = s"${visited.mkString(" -> ")} -> ${toVisit.value}"
-        throw new GraphException("Cyclic dependency found: " + path)
+        throw new GraphException("Cycle found: " + path)
       } else {
         val path = visited :+ toVisit.value
         toVisit.connections.foreach(leaf => checkForCycle(leaf, path))

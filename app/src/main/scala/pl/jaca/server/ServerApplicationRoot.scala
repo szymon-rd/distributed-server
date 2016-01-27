@@ -7,7 +7,7 @@ import pl.jaca.cluster.{Application, Configurable, SystemNode}
 import pl.jaca.server.ServerApplicationRoot.Shutdown
 import pl.jaca.server.networking.Server
 import pl.jaca.server.networking.Server.Subscribe
-import pl.jaca.server.providers.{EventHandlerProvider, PacketResolverProvider, ServiceProvider}
+import pl.jaca.server.providers.{ServiceDependencyResolver, EventHandlerProvider, PacketResolverProvider, ServiceDependencyResolver$}
 
 /**
   * @author Jaca777
@@ -21,7 +21,7 @@ class ServerApplicationRoot extends Application with Distribution with Configura
 
   val systemConfig = context.system.settings.config
   val resolverProvider = new PacketResolverProvider(appConfig)
-  val serviceProvider = new ServiceProvider(appConfig, createService, log)
+  val serviceProvider = new ServiceDependencyResolver(appConfig, createService, log)
   val handlerProvider = new EventHandlerProvider(appConfig, serviceProvider, createHandler)
 
   /**

@@ -6,7 +6,7 @@ import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
 import pl.jaca.server.EventHandlerProviderSpec.HandlerA
 import pl.jaca.server.eventhandling.EventActor
-import pl.jaca.server.providers.{EventHandlerProvider, ServiceProvider}
+import pl.jaca.server.providers.{ServiceDependencyResolver, EventHandlerProvider, ServiceDependencyResolver$}
 import pl.jaca.server.service.Service
 
 import scala.concurrent.ExecutionContext.Implicits._
@@ -37,7 +37,7 @@ class EventHandlerProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec"
   
   def createHandler(p: Props, name: String) = TestActorRef(p)
 
-  object DummyServiceProvider extends ServiceProvider(properConfig1, (_, _) => null, log) {
+  object DummyServiceProvider extends ServiceDependencyResolver(properConfig1, (_, _) => null, log) {
 
     override def getService(name: String): Option[ActorRef] = name match {
       case "serviceA" => Some(actorA)

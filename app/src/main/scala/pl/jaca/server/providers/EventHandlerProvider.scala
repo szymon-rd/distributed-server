@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext
   * @author Jaca777
   *         Created 2015-12-16 at 16
   */
-private[server] class EventHandlerProvider(config: Config, services: ServiceProvider, handlerFactory: ((Props, String) => ActorRef))(implicit executor: ExecutionContext) {
+private[server] class EventHandlerProvider(config: Config, services: ServiceDependencyResolver, handlerFactory: ((Props, String) => ActorRef))(implicit executor: ExecutionContext) {
   private val handlersEntry = config.getStringList(handlersPath).toArray.map(_.asInstanceOf[String])
 
   private val actorsFactories = handlersEntry.map {
