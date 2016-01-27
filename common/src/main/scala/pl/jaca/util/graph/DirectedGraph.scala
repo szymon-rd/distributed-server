@@ -8,11 +8,11 @@ case class DirectedGraph[A](val rootNodes: Node[A]*) {
 
 
   /**
-    * Adds edge to graph.
+    * Creates new graph with an additional edge.
     *
     * @param from
     * @param to
-    * @return
+    * @return Created graph.
     */
   def addEdge(from: A, to: A): DirectedGraph[A] = {
     if (from == to) throw new GraphException(s"Cycle found: $from -> $to")
@@ -24,6 +24,11 @@ case class DirectedGraph[A](val rootNodes: Node[A]*) {
     else addEdge(fromNode.get, toNode.get)
   }
 
+  /**
+   * Creates new graph with additional node.
+   * @param e new element
+   * @return Created graph.
+   */
   def addNode(e: A): DirectedGraph[A] = {
     val roots = rootNodes :+ new Node[A](e)
     new DirectedGraph[A](roots: _*)
@@ -55,7 +60,7 @@ case class DirectedGraph[A](val rootNodes: Node[A]*) {
 
 
   /**
-    * Finds node with element @from in graph.
+    * Finds node with value @from in graph.
     *
     * @param from
     * @return
@@ -76,11 +81,11 @@ case class DirectedGraph[A](val rootNodes: Node[A]*) {
   }
 
   /**
-    * Replaces @node with @newNode in graph.
+    * Creates new graph with replaced @node with @newNode.
     *
     * @param node
     * @param newNode
-    * @return
+    * @return Created graph.
     */
   def update(node: Node[A], newNode: Node[A]): DirectedGraph[A] = {
     def updateAcc(currNode: Node[A]): Node[A] = {
