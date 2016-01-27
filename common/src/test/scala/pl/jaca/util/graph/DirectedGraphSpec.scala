@@ -7,7 +7,7 @@ import pl.jaca.util.testing.TypeMatchers
  * @author Jaca777
  *         Created 2015-12-23 at 12
  */
-class DependencyGraphSpec extends WordSpecLike with Matchers with TypeMatchers {
+class DirectedGraphSpec extends WordSpecLike with Matchers with TypeMatchers {
   "DependencyGraph" should {
     "add two new nodes" in {
       val graph = new DirectedGraph[Int]()
@@ -50,14 +50,14 @@ class DependencyGraphSpec extends WordSpecLike with Matchers with TypeMatchers {
       intercept[GraphException] {
         val newGraph = graph.addEdge(1, 2)
         newGraph.addEdge(2, 1)
-      }.getMessage should be (s"Cyclic dependency found: 2 -> 1 -> 2")
+      }.getMessage should be (s"Cycle found: 2 -> 1 -> 2")
     }
     "detect cyclic dependency 2" in {
       val root = Node(1, Node(2), Node(3, Node(4), Node(5)))
       val graph = new DirectedGraph(root)
       intercept[GraphException] {
         graph.addEdge(4, 1)
-      }.getMessage should be (s"Cyclic dependency found: 4 -> 1 -> 3 -> 4")
+      }.getMessage should be (s"Cycle found: 4 -> 1 -> 3 -> 4")
     }
     "detect cyclic dependency 3" in {
       val root1 = Node(1, Node(2), Node(3, Node(4), Node(5)))
@@ -66,13 +66,13 @@ class DependencyGraphSpec extends WordSpecLike with Matchers with TypeMatchers {
       intercept[GraphException] {
         val newGraph = graph.addEdge(5, 6)
         newGraph.addEdge(9, 1)
-      }.getMessage should be (s"Cyclic dependency found: 9 -> 1 -> 3 -> 5 -> 6 -> 8 -> 9")
+      }.getMessage should be (s"Cycle found: 9 -> 1 -> 3 -> 5 -> 6 -> 8 -> 9")
     }
     "detect cyclic dependency 4" in {
       val graph = new DirectedGraph[Int]
       intercept[GraphException] {
         val newGraph = graph.addEdge(1, 1)
-      }.getMessage should be (s"Cyclic dependency found: 1 -> 1")
+      }.getMessage should be (s"Cycle found: 1 -> 1")
     }
   }
 }

@@ -4,7 +4,7 @@ package pl.jaca.util.graph
   * @author Jaca777
   *         Created 2015-12-23 at 11
   */
-case class Node[V](value: V, connections: Node[V]*) {
+case class Node[+V](value: V, connections: Node[V]*) {
 
   def collect[A](f: (Seq[A], V) => A): A = {
     def collect(toVisit: Node[V]): A = {
@@ -27,7 +27,7 @@ case class Node[V](value: V, connections: Node[V]*) {
     checkForCycle(this, List.empty)
   }
 
-  def accept(visitor: NodeVisitor[V]): Unit = {
+  def accept[C >: V](visitor: NodeVisitor[C]): Unit = {
     for (node <- connections) node.accept(visitor)
     visitor.visitNode(this)
   }
