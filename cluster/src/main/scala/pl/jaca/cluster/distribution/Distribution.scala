@@ -53,9 +53,10 @@ trait Distribution extends Actor {
   def distribute[T <: Distributable with Actor : ClassTag](props: Props, name: String,
                                                            actorCreator: (Props, String) => ActorRef): ActorRef = {
     val distributedProps = distributeProps(props)
+    val factory = (props: Props) => actorCreator(props, name)
     actorCreator(
-      Props(new DistributedActorProxy(distributedProps)),
-      name
+      Props(new DistributedActorProxy(distributedProps, factory)),
+      name + "-proxy"
     )
   }
 

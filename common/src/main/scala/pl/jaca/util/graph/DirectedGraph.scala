@@ -101,7 +101,10 @@ case class DirectedGraph[+A](val rootNodes: Node[A]*) {
     new DirectedGraph[B](rootNodes.map(updateAcc): _*)
   }
 
-  def accept[B >: A](visitor: NodeVisitor[B]): Unit =
+  def accept[B >: A](visitor: BottomToTopGraphVisitor[B]): Unit =
+    for (root <- rootNodes) root.accept(visitor)
+
+  def accept[B >: A](visitor: TopToBottomGraphVisitor[B]): Unit =
     for (root <- rootNodes) root.accept(visitor)
 
 }

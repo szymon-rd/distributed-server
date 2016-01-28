@@ -1,13 +1,13 @@
 package pl.jaca.server.providers
 
 import akka.actor.{ActorRef, Props}
-import pl.jaca.util.graph.{Node, NodeVisitor}
+import pl.jaca.util.graph.{Node, BottomToTopGraphVisitor}
 
 /**
   * @author Jaca777
   *         Created 2016-01-27 at 15
   */
-private class ServiceNodeVisitor(actorFactory: ((Props, String) => ActorRef)) extends NodeVisitor[ServiceProvider] {
+private class ServiceGraphVisitor(actorFactory: ((Props, String) => ActorRef)) extends BottomToTopGraphVisitor[ServiceProvider] {
   var services = Map[String, ActorRef]()
 
   override def visitNode(node: Node[ServiceProvider]): Unit = {

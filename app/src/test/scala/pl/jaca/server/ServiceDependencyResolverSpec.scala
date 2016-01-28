@@ -4,8 +4,8 @@ import akka.actor._
 import akka.testkit.{TestActorRef, TestKit}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
-import pl.jaca.server.ServiceProviderSpec._
-import pl.jaca.server.providers.{ServiceDependencyResolver, ServiceDependencyResolver$}
+import pl.jaca.server.ServiceDependencyResolverSpec._
+import pl.jaca.server.providers.{ServiceDependencyResolver}
 import pl.jaca.server.service.Service
 
 import scala.concurrent.ExecutionContext.Implicits
@@ -16,7 +16,7 @@ import scala.language.postfixOps
   * @author Jaca777
   *         Created 2015-12-17 at 20
   */
-class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers {
+class ServiceDependencyResolverSpec extends TestKit(ActorSystem("ServiceDependencyResolverSpec")) with WordSpecLike with Matchers {
 
   implicit val ec = Implicits.global
 
@@ -37,7 +37,7 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
     TestActorRef(p)
   }
 
-  "ServiceProvider" must {
+  "ServiceDependencyResolver" must {
     "load services from config and inject dependencies" in {
       val serviceProvider = new ServiceDependencyResolver(properConfig1, createTestActor, log)
 
@@ -70,17 +70,17 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
     "throw exception when class is not type of service" in {
       intercept[ServerConfigException] {
         new ServiceDependencyResolver(wrongConfig1, createTestActor, log)
-      }.getMessage should be("pl.jaca.server.ServiceProviderSpec$NotAService is not type of Service.")
+      }.getMessage should be("pl.jaca.server.ServiceDependencyResolverSpec$NotAService is not type of Service.")
     }
     "throw exception when class is abstract" in {
       intercept[ServerConfigException] {
         new ServiceDependencyResolver(wrongConfig2, createTestActor, log)
-      }.getMessage should be("Service pl.jaca.server.ServiceProviderSpec$AbstractService is an abstract class.")
+      }.getMessage should be("Service pl.jaca.server.ServiceDependencyResolverSpec$AbstractService is an abstract class.")
     }
     "throw exception when class constructor has not injectable params." in {
       intercept[ServerConfigException] {
         new ServiceDependencyResolver(wrongConfig3, createTestActor, log)
-      }.getMessage should be("Service pl.jaca.server.ServiceProviderSpec$NonInjectableService constructor has not injectable parameters.")
+      }.getMessage should be("Service pl.jaca.server.ServiceDependencyResolverSpec$NonInjectableService constructor has not injectable parameters.")
     }
     "detect cyclic dependencies" in {
       intercept[ServerConfigException] {
@@ -92,7 +92,7 @@ class ServiceProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) wi
 
 }
 
-object ServiceProviderSpec {
+object ServiceDependencyResolverSpec {
 
   class NotAService
 
@@ -110,7 +110,7 @@ object ServiceProviderSpec {
     }
   }
 
-  class ServiceB extends Service {
+  class ServiceB(@Inject(serviceName = "serviceG") val service: ActorRef) extends Service {
     override def receive: Actor.Receive = {
       case _ =>
     }

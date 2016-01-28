@@ -59,7 +59,7 @@ private[server] class ServiceDependencyResolver(config: Config, actorFactory: ((
       elem <- serviceClasses
     } yield ServiceProvider(elem._1, elem._2)).toSeq
     val graph = createGraph(elements)
-    val visitor = new ServiceNodeVisitor(actorFactory)
+    val visitor = new ServiceGraphVisitor(actorFactory)
     graph.accept(visitor)
     visitor.services
   }

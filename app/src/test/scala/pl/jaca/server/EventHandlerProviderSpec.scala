@@ -16,7 +16,7 @@ import scala.language.postfixOps
  * @author Jaca777
  *         Created 2015-12-17 at 20
  */
-class EventHandlerProviderSpec extends TestKit(ActorSystem("ServiceProviderSpec")) with WordSpecLike with Matchers {
+class EventHandlerProviderSpec extends TestKit(ActorSystem("EventHandlerProviderSpec")) with WordSpecLike with Matchers {
 
   val properConfig1 = ConfigFactory.load("server/conf1.conf")
   val wrongConfig1 = ConfigFactory.load("server/conf2.conf")

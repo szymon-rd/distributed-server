@@ -6,14 +6,6 @@ package pl.jaca.util.graph
   */
 case class Node[+V](value: V, connections: Node[V]*) {
 
-  def collect[A](f: (Seq[A], V) => A): A = {
-    def collect(toVisit: Node[V]): A = {
-      val s = toVisit.connections.map(collect)
-      f(s, toVisit.value)
-    }
-    collect(this)
-  }
-
   def checkForCycle() = {
     def checkForCycle(toVisit: Node[V], visited: List[V]): Unit = {
       if (visited.contains(toVisit.value)) {
@@ -27,8 +19,14 @@ case class Node[+V](value: V, connections: Node[V]*) {
     checkForCycle(this, List.empty)
   }
 
-  def accept[C >: V](visitor: NodeVisitor[C]): Unit = {
+  def accept[A >: V](visitor: TopToBottomGraphVisitor[A]): Unit = { //IntelliJ reports type mismatch. Compiles.
+    visitor.visitNode(this)
+    for (node <- connections) node.accept(visitor)
+  }
+
+  def accept[A >: V](visitor: BottomToTopGraphVisitor[A]): Unit = {
     for (node <- connections) node.accept(visitor)
     visitor.visitNode(this)
   }
+
 }

@@ -38,6 +38,8 @@ case class ServiceProvider(name: String, constr: Constructor[Service]) {
     annotation.serviceName()
   }
 
+
+
 }
 
 object ServiceProvider {
