@@ -2,7 +2,6 @@
 /logs/
 /tags
 
-
 ### Scala template
 *.log
 *.sc
